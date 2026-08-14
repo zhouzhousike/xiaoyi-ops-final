@@ -448,7 +448,7 @@
     {key:'accounts',label:'账号管理',icon:I.acc},
     {key:'backup',label:'数据备份',icon:I.backup}
   ];
-  APP.state={view:'dashboard',sub:'topics',topicAudience:'27',topicStage:'全部',heatRange:'week',trafficTab:'table',matType:'全部',tfPeriod:'',tfMonth:'all',tfAcc:'all',privScope:'all'};
+  APP.state={view:'dashboard',sub:'topics',topicAudience:'27',topicStage:'全部',heatRange:'week',trafficTab:'table',matType:'全部',tfPeriod:'',tfMonth:'all',tfAcc:'all',privScope:'all',accTypeFilter:'all'};
 
   function renderNav(){
     var m=$('#menu'); m.innerHTML=NAV.map(function(n){
@@ -685,10 +685,12 @@
   function heatData(range){
     var cycles=cycleList();
     if(range==='week'){
-      // 本考核周期的每周数据（按 cstart 落在当前周期内）
-      var pid=APP.data.meta.currentPeriod, p=getPeriod(pid);
+      // 跟随当前选中的统计月度（tfMonth），取该月度内的每周数据
+      var mKey=APP.state.tfMonth||currentMonthKey();
+      var mPid=(mKey==='all')?APP.data.meta.currentPeriod:monthKeyToPid(mKey);
+      var p=getPeriod(mPid);
       var inP=cycles.filter(function(c){return inPeriod({cstart:c.cstart},p);});
-      return {cells:inP,label:'本周期每周'};
+      return {cells:inP,label:'本月度各周'};
     }
     if(range==='month'){
       var mm={};
@@ -703,7 +705,7 @@
     var hd=heatData(APP.state.heatRange);
     var max=Math.max(1,Math.max.apply(null,hd.cells.map(function(c){return c.total;}).concat([0])));
     var sum=hd.cells.reduce(function(s,c){return s+c.total;},0);
-    var ranges=[['week','本月每周'],['month','按月'],['all','全部']];
+    var ranges=[['week','本月度各周'],['month','按月'],['all','全部']];
     var tabs=ranges.map(function(r){return '<button class="btn sm ghost'+(APP.state.heatRange===r[0]?' active':'')+'" data-heat="'+r[0]+'">'+r[1]+'</button>';}).join(' ');
     var cells=hd.cells.map(function(c){
       var lvl=c.total===0?0:Math.max(1,Math.ceil(c.total/max*4));
@@ -748,7 +750,7 @@
         smini('三类合计人数',grandJoin,'','#B6C2CF')+
         smini('三类合计分数',sc.total,'','#7C8997')+
       '</div></div>';
-    // 明细筛选：月度已选 → 周（级联该月各周）→ 账号（活跃优先）
+    // 明细筛选：月度 → 周（级联该月各周）→ 账号
     var monthFiltered=allTraffic;
     if(!isAll){monthFiltered=monthFiltered.filter(function(r){return (r.cstart||'').substring(0,7)===mKey;});}
     var fP=APP.state.tfPeriod;
@@ -761,21 +763,30 @@
     var pOpts2='<option value=""'+(!fP?' selected':'')+'>本月全部周</option>'+
       (isAll?'<option value="all"'+(fP==='all'?' selected':'')+'>全部周（跨月）</option>':'')+
       cycList.map(function(o){return '<option value="'+o.c+'"'+(fP===o.c?' selected':'')+'>'+esc(o.c)+'</option>';}).join('');
-    // 账号下拉：活跃号排前面，停更号加灰色标记
+    // 账号下拉：始终保留「全部账号」选项，活跃号排前，停更号置灰
     var activeAccs=APP.data.accounts.filter(function(a){return a.active;});
     var inactiveAccs=APP.data.accounts.filter(function(a){return !a.active;});
     var aOpts='<option value="all"'+(APP.state.tfAcc==='all'?' selected':'')+'>全部账号</option>';
-    activeAccs.forEach(function(a){aOpts+='<option value="'+a.id+'"'+(APP.state.tfAcc===a.id?' selected':'')+'">'+esc(a.name)+' ✦</option>';});
+    activeAccs.forEach(function(a){aOpts+='<option value="'+a.id+'"'+(APP.state.tfAcc===a.id?' selected':'')+'>'+esc(a.name)+'</option>';});
     inactiveAccs.forEach(function(a){aOpts+='<option value="'+a.id+'"'+(APP.state.tfAcc===a.id?' selected':'')+'>'+esc(a.name)+' (停更)</option>';});
-    // 明细表（差异化：官号看加好友，自营/兼职看进群；不再统计曝光/赞藏评/粉丝净增）
+    // 明细表排序：官方号→恒白→ddy11→青椒→开心章鱼小丸子→其他（按文档顺序）
+    // 官方号和恒白行视觉区分（加粗左边框+浅底色），账号选择器不区分
+    var accPriority={'acc_off':1,'acc_hengbai':2,'acc_ddy':3,'acc_qing':4,'acc_wanzi':5};
     var rows=recs
-      .sort(function(a,b){var ca=a.cstart||cycleStart(a.cycle),cb=b.cstart||cycleStart(b.cycle);return ca<cb?1:-1;})
+      .sort(function(a,b){
+        var pa=accPriority[a.accountId]||99,pb=accPriority[b.accountId]||99;
+        if(pa!==pb)return pa-pb;
+        var ca=a.cstart||cycleStart(a.cycle),cb=b.cstart||cycleStart(b.cycle);
+        return ca<cb?1:-1;
+      })
       .map(function(r){
         var a=accById(r.accountId);var off=a&&a.type==='official';
+        var isKey=(r.accountId==='acc_off'||r.accountId==='acc_hengbai');
         var inactive=a&&!a.active;
         var tagCls=(a?a.type:'')+(inactive?' inactive':'');
         var tagText=a?esc(a.name)+(inactive?' ⏸':''):'-';
         var rowStyle=inactive?'opacity:0.55':'';
+        if(isKey&&!inactive)rowStyle+=';border-left:3px solid var(--brand);background:var(--soft)';
         var metric=off?('<span class="muted small">加好友</span> <b class="num">'+esc(r.addFriend||0)+'</b>')
                       :('<span class="muted small">进群</span> <b class="num">'+esc(r.join||0)+'</b>');
         return '<tr style="'+rowStyle+'"><td>'+esc(r.cycle||'-')+'</td>'+
@@ -789,6 +800,7 @@
     var table='<div class="card"><div class="row mb" style="justify-content:space-between"><h3 style="margin:0">'+I.traffic+'引流明细</h3>'+
       '<button class="btn sm" data-act="trafficAdd">'+I.plus+'录入一周</button></div>'+
       '<div class="filterbar">'+
+        '<label class="fl">月度<select id="tfMonth2">'+monthOpts+'</select></label>'+
         '<label class="fl">周<select id="tfPeriod">'+pOpts2+'</select></label>'+
         '<label class="fl">账号<select id="tfAcc">'+aOpts+'</select></label>'+
         '<span class="muted small" style="margin-bottom:2px">共 '+recs.length+' 条</span>'+
@@ -834,13 +846,19 @@
       } else convHtml+='<div class="empty">未找到该群</div>';
     }
     convHtml+='</div>';
+    // 群清单：按群号从大到小排列（大号在上）；隐藏"群管理"文字和"合力引流"备注；默认200人
+    var gNum=function(name){var m=String(name||'').match(/(\d+)\D*$/);return m?parseInt(m[1],10):0;};
+    var sortedGs=gs.slice().sort(function(a,b){return gNum(b.name)-gNum(a.name);});
     var list='<div class="card"><div class="row mb"><h3 style="margin:0">'+I.group+'群清单 · 加好友KPI</h3>'+
       '<button class="btn sm" data-act="groupAdd">'+I.plus+'加群</button></div>'+
-      '<div class="list">'+gs.map(function(g){
-        return '<div class="li"><div class="body"><div class="t">'+esc(g.name)+'</div>'+
-          '<div class="m">群成员 '+esc(g.member||0)+' 人 · 群管理 '+esc(g.owner)+' · 转化负责：<b>'+esc(g.convertOwner||convertOwnerOf(g.name))+'</b></div>'+
-          (g.note?'<div class="muted small">'+esc(g.note)+'</div>':'')+'</div>'+
-          '<div style="text-align:right"><div class="num" style="font-size:18px;color:var(--parttime)">'+esc(g.addFriend||0)+'</div><div class="muted small">加好友(人)</div></div>'+
+      '<div class="list">'+sortedGs.map(function(g){
+        var gn=gNum(g.name);
+        var mem=g.member||200;
+        var isEven=gn%2===0;
+        return '<div class="li"><div class="body"><div class="t">'+esc(g.name)+(isEven?' <span class="tag parttime">宇天希哥</span>':' <span class="tag self">宇天派哥</span>')+'</div>'+
+          '<div class="m">群成员 '+mem+' 人 · 转化负责：<b>'+esc(g.convertOwner||convertOwnerOf(g.name))+'</b></div>'+
+          '</div>'+
+          '<div style="text-align:right"><div class="num" style="font-size:18px;color:var(--parttime)">'+esc(g.addFriend||0)+'</div><div class="muted small">从该群加好友(人)</div></div>'+
           '<div class="acts"><button class="btn sm ghost" data-act="groupEdit" data-id="'+g.id+'">'+I.edit+'</button>'+
           '<button class="btn sm danger" data-act="groupDel" data-id="'+g.id+'">'+I.trash+'</button></div></div>';
       }).join('')+'</div></div>';
@@ -916,9 +934,18 @@
   /* ---------- 账号管理 ---------- */
   function viewAccounts(){
     var accs=APP.data.accounts;
-    var list='<div class="card"><div class="row mb" style="justify-content:space-between"><h3 style="margin:0">'+I.acc+'账号档案</h3>'+
+    var filt=APP.state.accTypeFilter||'all';
+    if(filt!=='all'){accs=accs.filter(function(a){return a.type===filt;});}
+    var types=[['all','全部'],['official','官方号'],['self','自营号'],['parttime','兼职号']];
+    var typeBar='<div class="tabbar mb">'+types.map(function(t){
+      return '<div class="tab'+(filt===t[0]?' active':'')+'" data-accfilter="'+t[0]+'">'+t[1]+'（'+
+        (t[0]==='all'?APP.data.accounts.length:APP.data.accounts.filter(function(a){return a.type===t[0];}).length)+
+        '）</div>';
+    }).join('')+'</div>';
+    var list=typeBar+
+      '<div class="card"><div class="row mb" style="justify-content:space-between"><h3 style="margin:0">'+I.acc+'账号档案</h3>'+
       '<button class="btn sm" data-act="accAdd">'+I.plus+'新增账号</button></div>'+
-      '<div class="list">'+accs.map(function(a){
+      '<div class="list">'+(accs.length?accs.map(function(a){
         var cls=a.type+(a.active?'':' inactive');
         return '<div class="li" style="'+(a.active?'':'opacity:.6')+'">'+
           '<div class="body"><div class="t">'+esc(a.name)+' <span class="tag '+cls+'">'+(a.cat||typeLabel(a.type))+'</span>'+(a.active?'':' <span class="muted small">· 停更</span>')+'</div>'+
@@ -927,7 +954,7 @@
           (a.note?'<div class="muted small">'+esc(a.note)+'</div>':'')+'</div>'+
           '<div class="acts"><button class="btn sm ghost" data-act="accEdit" data-id="'+a.id+'">'+I.edit+'</button>'+
           '<button class="btn sm danger" data-act="accDel" data-id="'+a.id+'">'+I.trash+'</button></div></div>';
-      }).join('')+'</div></div>';
+      }).join(''):'<div class="empty">该类型暂无账号</div>')+'</div></div>';
     return list;
   }
   function accTypeOpts(sel){
@@ -1133,7 +1160,7 @@
     document.getElementById('view').addEventListener('click',onViewClick);
   }
   function onViewClick(e){
-    var el=e.target.closest('[data-act],[data-nav],[data-sub],[data-go],[data-stage],[data-audience],[data-heat],[data-mfilter],[data-x]');
+    var el=e.target.closest('[data-act],[data-nav],[data-sub],[data-go],[data-stage],[data-audience],[data-heat],[data-mfilter],[data-accfilter],[data-x]');
     if(!el)return;
     if(el.hasAttribute('data-x')){closeModal();return;}
     if(el.hasAttribute('data-nav')){navigate(el.getAttribute('data-nav'));return;}
@@ -1144,6 +1171,7 @@
     if(el.hasAttribute('data-audience')){APP.state.topicAudience=el.getAttribute('data-audience');var va=$('#view');if(va){va.innerHTML=viewContent();bindView();}$('#pageTitle').textContent='内容生产 · 选题库';return;}
     if(el.hasAttribute('data-heat')){APP.state.heatRange=el.getAttribute('data-heat');var vh=$('#view');if(vh){vh.innerHTML=viewTraffic();bindView();}return;}
     if(el.hasAttribute('data-mfilter')){APP.state.matType=el.getAttribute('data-mfilter');var vm=$('#view');if(vm){vm.innerHTML=viewMaterials();bindView();}return;}
+    if(el.hasAttribute('data-accfilter')){APP.state.accTypeFilter=el.getAttribute('data-accfilter');var va=$('#view');if(va){va.innerHTML=viewAccounts();bindView();}return;}
     var act=el.getAttribute('data-act'),id=el.getAttribute('data-id')||'';
     handleAct(act,id,el);
   }
@@ -1265,6 +1293,7 @@
         rd.readAsText(f);}
       if(t.id==='tfPeriod'){APP.state.tfPeriod = t.value; var vf=$('#view');if(vf){vf.innerHTML=viewTraffic();bindView();}}
       if(t.id==='tfMonth'){APP.state.tfMonth=t.value; APP.state.tfPeriod=''; var vm=$('#view');if(vm){vm.innerHTML=viewTraffic();bindView();}}
+      if(t.id==='tfMonth2'){APP.state.tfMonth=t.value; APP.state.tfPeriod=''; var vm=$('#view');if(vm){vm.innerHTML=viewTraffic();bindView();}}
       if(t.id==='tfAcc'){APP.state.tfAcc=t.value; var va=$('#view');if(va){va.innerHTML=viewTraffic();bindView();}}
       if(t.id==='privScope'){APP.state.privScope=t.value; var vp=$('#view');if(vp){vp.innerHTML=viewPrivate();bindView();}}
       if(t.id==='matFile'){var fl=t.files;if(!fl||!fl.length)return;handleFiles(fl);t.value='';}
