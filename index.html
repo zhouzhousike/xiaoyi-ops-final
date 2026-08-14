@@ -739,7 +739,7 @@
       '</div>';
     // 月度选择（基于 pidOf 周期归属：每月5号~次月5号，不是纯日历月）
     var allTraffic=APP.data.traffic;
-    var mset={};allTraffic.forEach(function(r){var p=pidOf(r.cstart||cycleStart(r.cycle));var mk=p.substring(2,4)+'-'+p.substring(4,6);mset[mk]=1;});
+    var mset={};allTraffic.forEach(function(r){var cs=r.cstart||cycleStart(r.cycle);mset[cs.substring(0,7)]=1;});
     var months=Object.keys(mset).sort().reverse();
     var curMK=currentMonthKey();if(!mset[curMK]){months.unshift(curMK);}
     var monthOpts='<option value="all"'+(isAll?' selected':'')+'>全部月度</option>'+
