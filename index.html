@@ -7,10 +7,10 @@
 <title>宇天408 · 运营工作台</title>
 <style>
   :root{
-    --bg:#E3DCD2; --panel:#ffffff; --ink:#6D6875; --muted:#8F9E8D; --line:#D6CFC4;
-    --brand:#8F9E8D; --brand-d:#6D6875; --brand-l:#DDE2D6;
-    --official:#6D6875; --self:#8F9E8D; --parttime:#AEB4A2;
-    --ok:#5d7d4f; --warn:#b4543f; --soft:#E8E6DD;
+    --bg:#FDF9EE; --panel:#ffffff; --ink:#56565B; --muted:#97979C; --line:#E6E4DA;
+    --brand:#B6C2CF; --brand-d:#7C8997; --brand-l:#DBDDDA;
+    --official:#B6C2CF; --self:#97979C; --parttime:#8C99A8;
+    --ok:#5d7d4f; --warn:#b4543f; --soft:#EEF0ED;
     --r:14px; --sh:0 1px 3px rgba(60,50,40,.08),0 6px 18px rgba(60,50,40,.07);
   }
   *{box-sizing:border-box;-webkit-tap-highlight-color:transparent}
@@ -61,6 +61,7 @@
   .stat.self{border-left:4px solid var(--self)} .stat.self .v{color:var(--self)}
   .stat.parttime{border-left:4px solid var(--parttime)} .stat.parttime .v{color:var(--parttime)}
   .stat.total{border-left:4px solid var(--brand)} .stat.total .v{color:var(--brand-d)}
+  .stat.ok{border-left:4px solid var(--ok)} .stat.ok .v{color:var(--ok)}
   .smini{background:var(--panel);border:1px solid var(--line);border-radius:10px;padding:9px 12px;flex:1;min-width:120px}
   .smini .k{font-size:12px;color:var(--muted);font-weight:600}
   .smini .v{font-size:20px;font-weight:800;margin-top:3px;font-variant-numeric:tabular-nums}
@@ -84,10 +85,10 @@
   .mt{margin-top:14px}.mb{margin-bottom:14px}
   /* 标签/徽章 */
   .tag{display:inline-flex;align-items:center;gap:4px;padding:3px 9px;border-radius:999px;font-size:11.5px;font-weight:700}
-  .tag.official{background:#E5E3DA;color:#6D6875;border-left:3px solid #6D6875}
-  .tag.self{background:#E2E6DD;color:#8F9E8D;border-left:3px solid #8F9E8D}
-  .tag.parttime{background:#E2E6DD;color:#6D6875;border-left:3px solid #AEB4A2}
-  .tag.gray{background:#E8E6DD;color:var(--muted)}
+  .tag.official{background:#DCE3EA;color:#5C6B7A;border-left:3px solid #B6C2CF}
+  .tag.self{background:#ECECEE;color:#6B6B70;border-left:3px solid #97979C}
+  .tag.parttime{background:#E7EAE7;color:#6E7A70;border-left:3px solid #8C99A8}
+  .tag.gray{background:#EEF0ED;color:var(--muted)}
   .tag.inactive{opacity:0.5;text-decoration:line-through}
   .tag.green{background:#e7f0e0;color:var(--ok)}
   .tag.red{background:#f6e6e1;color:var(--warn)}
@@ -125,7 +126,7 @@
   .seg input:checked + span{color:var(--brand-d)}
   .seg label:has(input:checked){border-color:var(--brand);background:var(--brand-l)}
   /* 今日待处理 */
-  .focus{background:linear-gradient(135deg,#E3DCD2,#EFEAE2);border:1px solid #D6CFC4;border-radius:var(--r);padding:14px 16px;margin-bottom:16px}
+  .focus{background:linear-gradient(135deg,#FDF9EE,#F2EFE6);border:1px solid #E6E4DA;border-radius:var(--r);padding:14px 16px;margin-bottom:16px}
   .focus h3{margin:0 0 10px;font-size:14.5px;display:flex;align-items:center;gap:8px;color:var(--brand-d)}
   .focus h3 svg{width:18px;height:18px;flex:none;stroke:var(--brand-d)}
   .focus .fi{display:flex;align-items:center;gap:10px;padding:8px 10px;background:#fff;border:1px solid var(--line);border-radius:10px;margin-bottom:8px}
@@ -135,7 +136,7 @@
   .focus .fi .tx{flex:1;font-size:13px}
   .focus .fi .tx b{color:var(--warn)}
   /* 进度条 */
-  .bar{height:8px;background:#E8E6DD;border-radius:99px;overflow:hidden}
+  .bar{height:8px;background:#EEF0ED;border-radius:99px;overflow:hidden}
   .bar > i{display:block;height:100%;background:var(--brand);border-radius:99px}
   /* 移动端 */
   @media(max-width:820px){
@@ -157,7 +158,7 @@
     .bottombar .bi.active{color:var(--brand)}
     .wrap{padding-bottom:74px}
   }
-  .toast{position:fixed;left:50%;bottom:80px;transform:translateX(-50%);background:#6D6875;color:#fff;padding:11px 18px;border-radius:11px;font-size:13.5px;font-weight:600;z-index:80;opacity:0;transition:.25s;pointer-events:none;max-width:90vw}
+  .toast{position:fixed;left:50%;bottom:80px;transform:translateX(-50%);background:#56565B;color:#fff;padding:11px 18px;border-radius:11px;font-size:13.5px;font-weight:600;z-index:80;opacity:0;transition:.25s;pointer-events:none;max-width:90vw}
   .toast.show{opacity:1}
   .muted{color:var(--muted)} .small{font-size:12.5px}
   .chartbox{width:100%;overflow:hidden}
@@ -174,12 +175,12 @@
   .heat{display:flex;flex-wrap:wrap;gap:6px;padding:2px}
   .heat .cell{min-width:54px;padding:7px 9px;border-radius:9px;font-size:11px;line-height:1.3;text-align:center;background:#F0E9ED;color:var(--ink);flex:none;position:relative}
   .heat .cell b{display:block;font-size:15px;font-variant-numeric:tabular-nums}
-  .heat .h0{background:#F0ECE4}
-  .heat .h1{background:#D9DCCF}
-  .heat .h2{background:#8F9E8D}
-  .heat .h3{background:#7C8276;color:#fff}
-  .heat .h4{background:#6D6875;color:#fff}
-  .heat .cell[data-t]:hover::after{content:attr(data-t);position:absolute;left:50%;top:-22px;transform:translateX(-50%);background:#6D6875;color:#fff;font-size:10px;padding:2px 6px;border-radius:5px;white-space:nowrap;z-index:5}
+  .heat .h0{background:#F4F1EA}
+  .heat .h1{background:#DBDDDA}
+  .heat .h2{background:#B6C2CF}
+  .heat .h3{background:#7C8997;color:#fff}
+  .heat .h4{background:#56565B;color:#fff}
+  .heat .cell[data-t]:hover::after{content:attr(data-t);position:absolute;left:50%;top:-22px;transform:translateX(-50%);background:#56565B;color:#fff;font-size:10px;padding:2px 6px;border-radius:5px;white-space:nowrap;z-index:5}
   .heat-legend{display:flex;align-items:center;gap:5px;font-size:11px;color:var(--muted);margin-top:6px}
   .heat-legend i{width:13px;height:13px;border-radius:3px;display:inline-block}
 </style>
@@ -236,7 +237,8 @@
     check: svg('<path d="M5 12l5 5L20 6"/>'),
     star: svg('<path d="M12 3l2.6 5.6L21 9.5l-4.5 4.3L17.6 21 12 17.8 6.4 21l1.1-7.2L3 9.5l6.4-.9z"/>'),
     book: svg('<path d="M5 4h11a3 3 0 0 1 3 3v13H8a3 3 0 0 0-3 3zM5 4v16"/>'),
-    user: svg('<circle cx="12" cy="8" r="3.5"/><path d="M5 21a7 7 0 0 1 14 0"/>')
+    user: svg('<circle cx="12" cy="8" r="3.5"/><path d="M5 21a7 7 0 0 1 14 0"/>'),
+    acc: svg('<rect x="3" y="4.5" width="18" height="15" rx="2.5"/><circle cx="9" cy="11" r="2.4"/><path d="M5.5 16.5c.6-2 2.4-3 3.5-3s2.9 1 3.5 3M14 10h5M14 14h4"/>')
   };
 
   /* ---------- 存储 ---------- */
@@ -365,7 +367,7 @@
 
   /* ---------- 业绩考核积分引擎 ---------- */
   function accById(id){var a=APP.data.accounts;for(var i=0;i<a.length;i++)if(a[i].id===id)return a[i];return null;}
-  function typeLabel(t){return t==='official'?'官方号':(t==='self'?'自营号':'兼职号');}
+  function typeLabel(t){if(t&&typeof t==='object')return t.cat||(t.type==='official'?'官方号':(t.type==='self'?'自营号':'高分学长学姐号'));var x=t;return x==='official'?'官方号':(x==='self'?'自营号':'高分学长学姐号');}
   function convertOwnerOf(name){
     var m=String(name||'').match(/(\d+)\D*$/);
     if(!m)return '—';
@@ -376,6 +378,20 @@
   function recNum(rec){var a=accById(rec.accountId);if(!a)return 0;return a.type==='official'?(Number(rec.addFriend)||0):(Number(rec.join)||0);}
   function scoreOf(rec){var a=accById(rec.accountId);if(!a)return 0;return recNum(rec)*a.rate;}
   function getPeriod(pid){return APP.data.periods.filter(function(x){return x.id===pid;})[0];}
+  // 当前统计月度 key（YYYY-MM，跟随 today）：每月5号~次月5号为一个统计月度
+  function currentMonthKey(){var d=new Date();return d.getFullYear()+'-'+pad2(d.getMonth()+1);}
+  // 当前统计月度对应的 period id（today 落在哪个 5号~次月5号 区间）
+  function currentMonthPid(){
+    var t=today();
+    var cps=APP.data.periods.filter(function(p){return t>=p.start && t<p.end;});
+    if(cps.length)return cps[0].id;
+    return APP.data.meta.currentPeriod;
+  }
+  // 月度 key（YYYY-MM）→ period id（按该月5号起算的月度周期）
+  function monthKeyToPid(mk){
+    var m=parseInt(mk.substring(5,7),10);
+    return 'p_'+pad2(m)+'05';
+  }
   // 该记录是否落在某考核周期内（按 cstart 起始日判断）
   function inPeriod(r,p){if(!p)return false;var c=r.cstart||cycleStart(r.cycle);return c>=p.start&&c<p.end;}
   function periodRecs(pid){var p=getPeriod(pid);return APP.data.traffic.filter(function(r){return inPeriod(r,p);});}
@@ -399,6 +415,19 @@
     return periodRecs(pid).filter(function(r){var a=accById(r.accountId);return a&&a.type==='parttime';})
       .reduce(function(s,r){return s+(Number(r.join)||0);},0);
   }
+  // 全部月度汇总（明细选「全部月度」时）
+  function allTimeScore(){
+    var off={join:0,score:0},self={join:0,score:0},pt={join:0,score:0};
+    APP.data.traffic.forEach(function(r){
+      var a=accById(r.accountId);if(!a)return;var j=recNum(r);
+      if(a.type==='official'){off.join+=j;off.score+=j*a.rate;}
+      else if(a.type==='self'){self.join+=j;self.score+=j*a.rate;}
+      else {pt.join+=j;pt.score+=j*a.rate;}
+    });
+    return {off:rd(off),self:rd(self),pt:rd(pt),total:Math.round(off.score+self.score+pt.score),
+      addFriend:APP.data.traffic.reduce(function(s,r){return s+(Number(r.addFriend)||0);},0)};
+    function rd(o){o.score=Math.round(o.score);return o;}
+  }
   // 解析统计周期标签的起始日（用于周期归属与排序）。'8.5-8.9'->2026-08-05；也兼容完整日期
   function cycleStart(cycle){
     var s=String(cycle||'').trim();
@@ -416,9 +445,10 @@
     {key:'traffic',label:'引流数据',icon:I.traffic},
     {key:'private',label:'私域运营',icon:I.group},
     {key:'materials',label:'课程资料',icon:I.material},
+    {key:'accounts',label:'账号管理',icon:I.acc},
     {key:'backup',label:'数据备份',icon:I.backup}
   ];
-  APP.state={view:'dashboard',sub:'topics',topicAudience:'27',topicStage:'全部',heatRange:'week',trafficTab:'table',matType:'全部',tfPeriod:'',tfMonth:'all',tfAcc:'all'};
+  APP.state={view:'dashboard',sub:'topics',topicAudience:'27',topicStage:'全部',heatRange:'week',trafficTab:'table',matType:'全部',tfPeriod:'',tfMonth:'all',tfAcc:'all',privScope:'all'};
 
   function renderNav(){
     var m=$('#menu'); m.innerHTML=NAV.map(function(n){
@@ -443,9 +473,10 @@
   function pageSub(v){
     if(v==='dashboard')return '今日/本周待处理 + 业绩总览';
     if(v==='content')return '选题库 · 写稿 · 发布 · 复盘';
-    if(v==='traffic')return '按统计周期记录，自动算业绩分';
+    if(v==='traffic')return '按周记录（每月5号~次月5号为一统计月度），自动算业绩分';
     if(v==='private')return '群 → 一对一加好友(转私域深度)';
     if(v==='materials')return '外化资料库 + 答疑知识库';
+    if(v==='accounts')return '账号档案 · 类型/持有者/负责人/人设/状态';
     if(v==='backup')return '导出/导入/清空';
     return '';
   }
@@ -459,13 +490,14 @@
     else if(APP.state.view==='traffic')v.innerHTML=viewTraffic();
     else if(APP.state.view==='private')v.innerHTML=viewPrivate();
     else if(APP.state.view==='materials')v.innerHTML=viewMaterials();
+    else if(APP.state.view==='accounts')v.innerHTML=viewAccounts();
     else if(APP.state.view==='backup')v.innerHTML=viewBackup();
     bindView();
   }
 
   /* ---------- 驾驶舱 ---------- */
   function viewDashboard(){
-    var pid=APP.data.meta.currentPeriod;
+    var pid=currentMonthPid();
     var p=APP.data.periods.filter(function(x){return x.id===pid;})[0];
     var sc=periodScore(pid);
     var ptSub=parttimeSubtotal(pid);
@@ -480,7 +512,7 @@
     focus+='<div class="focus"><h3>'+I.clock+'今日 / 本周待处理</h3>';
     focus+='<div class="fi"><div class="ic">'+I.content+'</div><div class="tx">待启动选题 <b>'+ideas.length+'</b> 个（选题库可挑选），已发布 '+published+' 个</div>'+
       '<button class="btn sm" data-go="content">去选题</button></div>';
-    focus+='<div class="fi"><div class="ic">'+I.traffic+'</div><div class="tx">本周期已录 <b>'+weekCount+'</b> 个阶段引流统计，建议每周单独统计一次</div>'+
+    focus+='<div class="fi"><div class="ic">'+I.traffic+'</div><div class="tx">本月已录 <b>'+weekCount+'</b> 周引流统计，建议每周单独统计一次</div>'+
       '<button class="btn sm" data-go="traffic">去录入</button></div>';
     focus+='<div class="fi"><div class="ic">'+I.group+'</div><div class="tx">'+(groupsNeed>0?('有 <b>'+groupsNeed+'</b> 个群尚未录入加好友数'):'各群加好友数已录入')+'</div>'+
       '<button class="btn sm" data-go="private">去录入</button></div>';
@@ -493,23 +525,22 @@
       stat('官方号引流','off',sc.off.join+' 人',sc.off.score+' 分（×3）')+
       stat('自营号引流','self',sc.self.join+' 人',sc.self.score+' 分（×1）')+
       stat('兼职号引流','parttime',sc.pt.join+' 人',sc.pt.score+' 分（×1）')+
-      stat('周期总积分','total',sc.total+' 分','加好友 '+sc.addFriend+' 人')+
+      stat('月度总积分','total',sc.total+' 分','加好友 '+sc.addFriend+' 人')+
       '</div>';
 
     // 趋势（按统计周期，各号引流）
     var weeks=Object.keys(cyclesDone).sort(function(a,b){return cycleStart(a)<cycleStart(b)?-1:1;});
     var trend=lineChart(weeks,[
-      {name:'官方号',color:'#6D6875',vals:weeks.map(function(w){return sumCycle(pid,w,'official');})},
-      {name:'自营号',color:'#8F9E8D',vals:weeks.map(function(w){return sumCycle(pid,w,'self');})},
-      {name:'兼职号',color:'#AEB4A2',vals:weeks.map(function(w){return sumCycle(pid,w,'parttime');})}
-    ]);
-    var bar=barChart(['官方号','自营号','兼职号'],[sc.off.join,sc.self.join,sc.pt.join],['#6D6875','#8F9E8D','#AEB4A2']);
+      {name:'官方号',color:'#B6C2CF',vals:weeks.map(function(w){return sumCycle(pid,w,'official');})},
+      {name:'自营号',color:'#97979C',vals:weeks.map(function(w){return sumCycle(pid,w,'self');})},
+      {name:'兼职号',color:'#8C99A8',vals:weeks.map(function(w){return sumCycle(pid,w,'parttime');})}    ]);
+    var bar=barChart(['官方号','自营号','兼职号'],[sc.off.join,sc.self.join,sc.pt.join],['#B6C2CF','#97979C','#8C99A8']);
 
     return focus+
       '<div class="mb">'+stats+'</div>'+
       '<div class="grid g2">'+
-        '<div class="card"><h3>'+I.chart+'本周期各号引流趋势（按阶段）</h3><div class="chartbox">'+trend+'</div></div>'+
-        '<div class="card"><h3>'+I.chart+'本周期三类引流对比</h3><div class="chartbox">'+bar+'</div>'+
+        '<div class="card"><h3>'+I.chart+'本月度各号引流趋势（按周）</h3><div class="chartbox">'+trend+'</div></div>'+
+        '<div class="card"><h3>'+I.chart+'本月度三类引流对比</h3><div class="chartbox">'+bar+'</div>'+
           '<div class="kv"><span class="muted">兼职小计（自动）</span><b>'+ptSub+' 人</b></div>'+
           '<div class="kv"><span class="muted">周期</span><b>'+(p?esc(p.start)+' ~ '+esc(p.end):'-')+'</b></div>'+
         '</div>'+
@@ -682,67 +713,54 @@
     return '<div class="card mb"><div class="row mb" style="justify-content:space-between"><h3 style="margin:0">'+I.traffic+'引流热力图</h3>'+
       '<div class="row" style="gap:6px">'+tabs+'</div></div>'+
       '<div class="heat">'+cells+'</div>'+
-      '<div class="heat-legend">少 <i class="h0" style="background:#F0ECE4"></i><i class="h1" style="background:#D9DCCF"></i><i class="h2" style="background:#8F9E8D"></i><i class="h3" style="background:#7C8276"></i><i class="h4" style="background:#6D6875"></i> 多</div>'+
-      '<div class="small muted mt">本区间引流合计 <b>'+sum+'</b> 人 · 每格显示「统计周期 / 该周期引流总数」（官号计加好友，其余计进群）</div></div>';
+      '<div class="heat-legend">少 <i class="h0" style="background:#F4F1EA"></i><i class="h1" style="background:#DBDDDA"></i><i class="h2" style="background:#B6C2CF"></i><i class="h3" style="background:#7C8997"></i><i class="h4" style="background:#56565B"></i> 多</div>'+
+      '<div class="small muted mt">本区间引流合计 <b>'+sum+'</b> 人 · 每格显示「周 / 该周引流总数」（官号计加好友，其余计进群）</div></div>';
   }
   function viewTraffic(){
-    var pid=APP.data.meta.currentPeriod;
-    var p=getPeriod(pid);
-    var sc=periodScore(pid);
+    var mKey=APP.state.tfMonth;
+    var isAll=(mKey==='all');
+    var pid=isAll?null:monthKeyToPid(mKey);
+    var sc=isAll?allTimeScore():periodScore(pid);
+    var mLabel=isAll?'全部月度':(mKey.substring(0,4)+'年'+Number(mKey.substring(5))+'月');
     var head='<div class="grid g4 mb">'+
       stat('官方号·加好友','official',sc.off.join+' 人',sc.off.score+' 分（×3）')+
       stat('自营号·进群','self',sc.self.join+' 人',sc.self.score+' 分（×1）')+
       stat('兼职号·进群','parttime',sc.pt.join+' 人',sc.pt.score+' 分（×1）')+
-      stat('总积分','total',sc.total+' 分','本考核周期')+
+      stat('总积分','total',sc.total+' 分',isAll?'全部月度':mLabel)+
       '</div>';
-    // 考核周期切换（每月5号~次月5号）+ 三类汇总一览
-    var pOpts=APP.data.periods.map(function(x){return '<option value="'+x.id+'"'+(x.id===pid?' selected':'')+'>'+esc(x.start)+' ~ '+esc(x.end)+'</option>';}).join('');
+    // 月度选择 + 三类汇总一览（每月5号~次月5号为统计月度）
+    var allTraffic=APP.data.traffic;
+    var mset={};allTraffic.forEach(function(r){var m=(r.cstart||'').substring(0,7);if(m)mset[m]=1;});
+    var months=Object.keys(mset).sort().reverse();
+    var curMK=currentMonthKey();if(!mset[curMK]){months.unshift(curMK);}
+    var monthOpts='<option value="all"'+(isAll?' selected':'')+'>全部月度</option>'+
+      months.map(function(m){return '<option value="'+m+'"'+(mKey===m?' selected':'')+'>'+m.substring(0,4)+'年'+Number(m.substring(5))+'月</option>';}).join('');
     var grandJoin=sc.off.join+sc.self.join+sc.pt.join;
     var periodInfo='<div class="card mb">'+
-      '<div class="row" style="flex-wrap:wrap;gap:10px;margin-bottom:12px"><div class="body" style="flex:1;min-width:220px"><b>考核周期：</b>'+
-        '<select id="periodSel" style="width:auto;display:inline-block">'+pOpts+'</select>'+
-        '</div><button class="btn sm ghost" data-act="periodEdit">调整周期</button></div>'+
+      '<div class="row" style="flex-wrap:wrap;gap:10px;margin-bottom:12px"><div class="body" style="flex:1;min-width:220px"><b>统计月度：</b>'+
+        '<select id="tfMonth" style="width:auto;display:inline-block">'+monthOpts+'</select>'+
+        '　<span class="muted small">（每月5号~次月5号；默认本月）</span></div>'+
+        '<button class="btn sm ghost" data-act="periodEdit">调整月度边界</button></div>'+
       '<div class="row" style="gap:8px;flex-wrap:wrap">'+
         smini('官方号',sc.off.join,sc.off.score,'var(--official)')+
         smini('自营号',sc.self.join,sc.self.score,'var(--self)')+
         smini('兼职号',sc.pt.join,sc.pt.score,'var(--parttime)')+
-        smini('三类合计人数',grandJoin,'','#8F9E8D')+
-        smini('三类合计分数',sc.total,'','#6D6875')+
+        smini('三类合计人数',grandJoin,'','#B6C2CF')+
+        smini('三类合计分数',sc.total,'','#7C8997')+
       '</div></div>';
-    // 明细筛选：月度 → 周期（自动联动该月内的周期）→ 账号（活跃优先）
-    var allTraffic=APP.data.traffic;
-    // 1) 先按月度过滤
-    var monthKey=APP.state.tfMonth;
+    // 明细筛选：月度已选 → 周（级联该月各周）→ 账号（活跃优先）
     var monthFiltered=allTraffic;
-    if(monthKey!=='all'){monthFiltered=monthFiltered.filter(function(r){return (r.cstart||'').substring(0,7)===monthKey;});}
-    // 2) 再按周期过滤（只显示当前月度包含的周期）
+    if(!isAll){monthFiltered=monthFiltered.filter(function(r){return (r.cstart||'').substring(0,7)===mKey;});}
     var fP=APP.state.tfPeriod;
-    var periodFiltered=monthFiltered;
-    if(fP&&fP!=='all'&&fP!=='cur'){periodFiltered=periodFiltered.filter(function(r){return r.periodId===fP;});}
-    else if(fP==='cur'){
-      periodFiltered=periodFiltered.filter(function(r){return r.periodId===pid;});
-    }
-    // 3) 最后按账号
-    var recs=periodFiltered;
+    var recs=monthFiltered;
+    if(fP&&fP!=='all'){recs=recs.filter(function(r){return r.cycle===fP;});}
     if(APP.state.tfAcc!=='all'){recs=recs.filter(function(r){return r.accountId===APP.state.tfAcc;});}
-    // === 构建筛选器选项 ===
-    // 月度下拉
-    var mset={};allTraffic.forEach(function(r){var m=(r.cstart||'').substring(0,7);if(m)mset[m]=1;});
-    var months=Object.keys(mset).sort().reverse();
-    var monthOpts='<option value="all"'+(monthKey==='all'?' selected':'')+'>全部月度</option>'+
-      months.map(function(m){return '<option value="'+m+'"'+(monthKey===m?' selected':'')+'>'+m.substring(0,4)+'年'+Number(m.substring(5))+'月</option>';}).join('');
-    // 周期下拉：根据已选月度，只列出该月度覆盖的周期
-    var pidsInMonth={};monthFiltered.forEach(function(r){if(r.periodId)pidsInMonth[r.periodId]=1;});
-    var availPids=Object.keys(pidsInMonth);
-    var pOpts2='<option value=""'+(!fP?' selected':'')+'>本月全部阶段</option>';
-    if(monthKey==='all'||availPids.length>1){
-      pOpts2+='<option value="all"'+(fP==='all'?' selected':'')+'>全部周期</option>';
-    }
-    APP.data.periods.forEach(function(x){
-      if(monthKey==='all'||availPids.indexOf(x.id)>=0){
-        pOpts2+='<option value="'+x.id+'"'+(fP===x.id?' selected':'')+'>'+esc(x.start)+' ~ '+esc(x.end)+(x.note?' ('+esc(x.note)+')':'')+'</option>';
-      }
-    });
+    // 周下拉：取该月度内出现过的 cycle（周一~周日）
+    var cycSet={};monthFiltered.forEach(function(r){if(r.cycle)cycSet[r.cycle]=r.cstart||cycleStart(r.cycle);});
+    var cycList=Object.keys(cycSet).map(function(c){return {c:c,d:cycSet[c]};}).sort(function(a,b){return a.d<b.d?-1:1;});
+    var pOpts2='<option value=""'+(!fP?' selected':'')+'>本月全部周</option>'+
+      (isAll?'<option value="all"'+(fP==='all'?' selected':'')+'>全部周（跨月）</option>':'')+
+      cycList.map(function(o){return '<option value="'+o.c+'"'+(fP===o.c?' selected':'')+'>'+esc(o.c)+'</option>';}).join('');
     // 账号下拉：活跃号排前面，停更号加灰色标记
     var activeAccs=APP.data.accounts.filter(function(a){return a.active;});
     var inactiveAccs=APP.data.accounts.filter(function(a){return !a.active;});
@@ -763,22 +781,20 @@
         return '<tr style="'+rowStyle+'"><td>'+esc(r.cycle||'-')+'</td>'+
           '<td>'+(a?'<span class="tag '+tagCls+'">'+tagText+'</span>':'-')+'</td>'+
           '<td>'+metric+'</td>'+
-          '<td class="num" style="color:'+(off?'var(--official)':'var(--ink)')+'">'+scoreOf(r)+'</td>'+
           '<td class="muted small">'+esc(a?a.owner:'')+'</td>'+
           '<td class="muted small">'+esc(a?a.holder:'')+'</td>'+
           '<td><button class="btn sm ghost" data-act="trafficEdit" data-id="'+r.id+'">'+I.edit+'</button> '+
           '<button class="btn sm danger" data-act="trafficDel" data-id="'+r.id+'">'+I.trash+'</button></td></tr>';
       }).join('');
     var table='<div class="card"><div class="row mb" style="justify-content:space-between"><h3 style="margin:0">'+I.traffic+'引流明细</h3>'+
-      '<button class="btn sm" data-act="trafficAdd">'+I.plus+'录入一期</button></div>'+
+      '<button class="btn sm" data-act="trafficAdd">'+I.plus+'录入一周</button></div>'+
       '<div class="filterbar">'+
-        '<label class="fl">月度<select id="tfMonth">'+monthOpts+'</select></label>'+
-        '<label class="fl">阶段<select id="tfPeriod">'+pOpts2+'</select></label>'+
+        '<label class="fl">周<select id="tfPeriod">'+pOpts2+'</select></label>'+
         '<label class="fl">账号<select id="tfAcc">'+aOpts+'</select></label>'+
         '<span class="muted small" style="margin-bottom:2px">共 '+recs.length+' 条</span>'+
       '</div>'+
-      '<div style="overflow:auto"><table><thead><tr><th>统计周期</th><th>账号</th><th>引流数</th><th>得分</th><th>负责人</th><th>账号持有者</th><th>操作</th></tr></thead><tbody>'+
-      (rows||'<tr><td colspan="7" class="empty">暂无记录</td></tr>')+'</tbody></table></div>'+
+      '<div style="overflow:auto"><table><thead><tr><th>周</th><th>账号</th><th>引流数</th><th>负责人</th><th>账号持有者</th><th>操作</th></tr></thead><tbody>'+
+      (rows||'<tr><td colspan="6" class="empty">暂无记录</td></tr>')+'</tbody></table></div>'+
       '<div class="small muted mt">计分规则：官方号按「加好友」1 人 = 3 分；自营号 / 兼职号按「进群」1 人 = 1 分。不统计报班转化率。</div></div>';
     return head+periodInfo+renderHeat()+table;
   }
@@ -788,19 +804,36 @@
     var gs=APP.data.groups;
     var totalAdd=gs.reduce(function(s,g){return s+(Number(g.addFriend)||0);},0);
     var totalMem=gs.reduce(function(s,g){return s+(Number(g.member)||0);},0);
-    var head='<div class="grid g3 mb">'+
+    var rateAll=totalMem>0?Math.round(totalAdd/totalMem*100):0;
+    var scope=APP.state.privScope||'all';
+    var scopeOpts='<option value="all"'+(scope==='all'?' selected':'')+'>全部群合计</option>'+
+      gs.map(function(g){return '<option value="'+g.id+'"'+(scope===g.id?' selected':'')+'>'+esc(g.name)+'</option>';}).join('');
+    var head='<div class="grid g4 mb">'+
       stat('群总数','total',gs.length+' 个','')+
       stat('群成员合计','official',totalMem+' 人','')+
       stat('加好友合计','parttime',totalAdd+' 人','转私域深度')+
+      stat('转私域转化率','ok',rateAll+'%','加好友/总人数')+
       '</div>';
-    // 各学长加好友排名
-    var byOwner={};
-    gs.forEach(function(g){byOwner[g.owner]=(byOwner[g.owner]||0)+(Number(g.addFriend)||0);});
-    var rank=Object.keys(byOwner).map(function(k){return [k,byOwner[k]];}).sort(function(a,b){return b[1]-a[1];});
-    var maxv=rank.length?rank[0][1]:1;
-    var rankHtml='<div class="card mb"><h3>'+I.user+'各学长加好友排名（过程量）</h3>'+
-      rank.map(function(r){return '<div class="kv"><span>'+esc(r[0])+'</span><b>'+r[1]+' 人</b></div>'+
-        '<div class="bar" style="margin:2px 0 8px"><i style="width:'+Math.round(r[1]/maxv*100)+'%"></i></div>';}).join('')+'</div>';
+    // 转化率明细：按「全部群」或「单个群」展示 加好友/总人数 比例
+    var convHtml='<div class="card mb"><div class="row mb" style="justify-content:space-between"><h3 style="margin:0">'+I.group+'加好友 / 总人数 转化率</h3>'+
+      '<label class="fl" style="margin:0">范围<select id="privScope">'+scopeOpts+'</select></label></div>';
+    if(scope==='all'){
+      convHtml+='<div class="list">'+(gs.length?gs.map(function(g){
+        var r=g.member>0?Math.round((Number(g.addFriend)||0)/g.member*100):0;
+        return '<div class="li"><div class="body"><div class="t">'+esc(g.name)+'</div>'+
+          '<div class="m">加好友 '+esc(g.addFriend||0)+' / 总 '+esc(g.member||0)+' 人</div></div>'+
+          '<div style="text-align:right"><div class="num" style="font-size:18px;color:var(--ok)">'+r+'%</div><div class="muted small">转化率</div></div></div>';
+      }).join(''):'<div class="empty">暂无群</div>')+'</div>';
+    } else {
+      var g=gs.filter(function(x){return x.id===scope;})[0];
+      if(g){
+        var r=g.member>0?Math.round((Number(g.addFriend)||0)/g.member*100):0;
+        convHtml+='<div class="kv"><span class="muted">群成员</span><b>'+esc(g.member||0)+' 人</b></div>'+
+          '<div class="kv"><span class="muted">加好友（核心KPI）</span><b>'+esc(g.addFriend||0)+' 人</b></div>'+
+          '<div class="kv"><span class="muted">转化率（加好友 / 总人数）</span><b style="color:var(--ok);font-size:18px">'+r+'%</b></div>';
+      } else convHtml+='<div class="empty">未找到该群</div>';
+    }
+    convHtml+='</div>';
     var list='<div class="card"><div class="row mb"><h3 style="margin:0">'+I.group+'群清单 · 加好友KPI</h3>'+
       '<button class="btn sm" data-act="groupAdd">'+I.plus+'加群</button></div>'+
       '<div class="list">'+gs.map(function(g){
@@ -811,7 +844,7 @@
           '<div class="acts"><button class="btn sm ghost" data-act="groupEdit" data-id="'+g.id+'">'+I.edit+'</button>'+
           '<button class="btn sm danger" data-act="groupDel" data-id="'+g.id+'">'+I.trash+'</button></div></div>';
       }).join('')+'</div></div>';
-    return head+rankHtml+list;
+    return head+convHtml+list;
   }
 
   /* ---------- 课程资料 ---------- */
@@ -880,6 +913,44 @@
     if(skipped&&fileList.length===skipped)toast(skipped+' 个文件超过 2MB，已跳过');
   }
 
+  /* ---------- 账号管理 ---------- */
+  function viewAccounts(){
+    var accs=APP.data.accounts;
+    var list='<div class="card"><div class="row mb" style="justify-content:space-between"><h3 style="margin:0">'+I.acc+'账号档案</h3>'+
+      '<button class="btn sm" data-act="accAdd">'+I.plus+'新增账号</button></div>'+
+      '<div class="list">'+accs.map(function(a){
+        var cls=a.type+(a.active?'':' inactive');
+        return '<div class="li" style="'+(a.active?'':'opacity:.6')+'">'+
+          '<div class="body"><div class="t">'+esc(a.name)+' <span class="tag '+cls+'">'+(a.cat||typeLabel(a.type))+'</span>'+(a.active?'':' <span class="muted small">· 停更</span>')+'</div>'+
+          '<div class="m">持有者 '+esc(a.holder||'-')+' · 负责人 '+esc(a.owner||'-')+' · 引流倍率 ×'+(a.rate||1)+'</div>'+
+          (a.persona?'<div class="m" style="color:#b45309">人设：'+esc(a.persona)+'</div>':'')+
+          (a.note?'<div class="muted small">'+esc(a.note)+'</div>':'')+'</div>'+
+          '<div class="acts"><button class="btn sm ghost" data-act="accEdit" data-id="'+a.id+'">'+I.edit+'</button>'+
+          '<button class="btn sm danger" data-act="accDel" data-id="'+a.id+'">'+I.trash+'</button></div></div>';
+      }).join('')+'</div></div>';
+    return list;
+  }
+  function accTypeOpts(sel){
+    var map=[['official','官方号 (×3)'],['self','自营号 (×1)'],['hs','高分学长学姐号 (×1)'],['pt','兼职号 (×1)']];
+    return map.map(function(p){return '<option value="'+p[0]+'"'+(p[0]===sel?' selected':'')+'>'+p[1]+'</option>';}).join('');
+  }
+  function accForm(rec){
+    rec=rec||{name:'',type:'parttime',cat:'高分学长学姐号',holder:'',owner:'',persona:'',rate:1,active:true,note:''};
+    var typeSel=rec.type==='official'?'official':(rec.type==='self'?'self':(rec.cat==='兼职号'?'pt':'hs'));
+    var actSel=rec.active?'1':'0';
+    var rateSel=String(rec.rate||1);
+    openModal('<h3>'+(rec.id?'编辑账号':'新增账号')+'</h3>'+
+      field('账号名',inp('ac_name',rec.name))+
+      field('类型',sel('ac_type',accTypeOpts(typeSel)))+
+      field('持有者',inp('ac_holder',rec.holder))+
+      field('负责人',inp('ac_owner',rec.owner))+
+      field('引流倍率',sel('ac_rate',opt(['1','3'],rateSel)))+
+      field('状态',sel('ac_active',opt(['1','0'],actSel)))+
+      field('人设 / 简介',inp('ac_persona',rec.persona))+
+      field('备注',inp('ac_note',rec.note))+
+      '<div class="row" style="justify-content:flex-end"><button class="btn ghost" data-x>取消</button><button class="btn" data-act="accSave" data-id="'+(rec.id||'')+'">保存</button></div>');
+  }
+
   /* ---------- 数据备份 ---------- */
   function viewBackup(){
     return '<div class="card"><h3>'+I.backup+'数据备份与恢复</h3>'+
@@ -912,8 +983,8 @@
       var dots=s.vals.map(function(v,i){return '<circle cx="'+X(i).toFixed(1)+'" cy="'+Y(v).toFixed(1)+'" r="3" fill="'+s.color+'"/>';}).join('');
       return '<path d="'+d+'" fill="none" stroke="'+s.color+'" stroke-width="2"/>'+dots;
     }).join('');
-    var xlabels=labels.map(function(l,i){return '<text x="'+X(i).toFixed(1)+'" y="'+(H-8)+'" font-size="10" fill="#8F9E8D" text-anchor="middle">'+esc(l)+'</text>';}).join('');
-    var legend=series.map(function(s){return '<span style="display:inline-flex;align-items:center;gap:4px;margin-right:10px;font-size:11px;color:#8F9E8D"><i style="width:10px;height:10px;border-radius:3px;background:'+s.color+';display:inline-block"></i>'+esc(s.name)+'</span>';}).join('');
+    var xlabels=labels.map(function(l,i){return '<text x="'+X(i).toFixed(1)+'" y="'+(H-8)+'" font-size="10" fill="#97979C" text-anchor="middle">'+esc(l)+'</text>';}).join('');
+    var legend=series.map(function(s){return '<span style="display:inline-flex;align-items:center;gap:4px;margin-right:10px;font-size:11px;color:#97979C"><i style="width:10px;height:10px;border-radius:3px;background:'+s.color+';display:inline-block"></i>'+esc(s.name)+'</span>';}).join('');
     return '<svg viewBox="0 0 '+W+' '+H+'" width="100%" style="max-height:220px">'+paths+xlabels+'</svg><div style="margin-top:4px">'+legend+'</div>';
   }
   function barChart(labels,vals,colors){
@@ -924,8 +995,8 @@
     var bars=labels.map(function(l,i){
       var x=pad+gap*i+(gap-bw)/2,h=H-pad-Y(vals[i]);
       return '<rect x="'+x.toFixed(1)+'" y="'+Y(vals[i]).toFixed(1)+'" width="'+bw.toFixed(1)+'" height="'+h.toFixed(1)+'" rx="4" fill="'+colors[i]+'"/>'+
-        '<text x="'+(x+bw/2).toFixed(1)+'" y="'+(Y(vals[i])-6).toFixed(1)+'" font-size="11" fill="#6D6875" text-anchor="middle" font-weight="700">'+vals[i]+'</text>'+
-        '<text x="'+(x+bw/2).toFixed(1)+'" y="'+(H-8)+'" font-size="10" fill="#8F9E8D" text-anchor="middle">'+esc(l)+'</text>';
+        '<text x="'+(x+bw/2).toFixed(1)+'" y="'+(Y(vals[i])-6).toFixed(1)+'" font-size="11" fill="#56565B" text-anchor="middle" font-weight="700">'+vals[i]+'</text>'+
+        '<text x="'+(x+bw/2).toFixed(1)+'" y="'+(H-8)+'" font-size="10" fill="#97979C" text-anchor="middle">'+esc(l)+'</text>';
     }).join('');
     return '<svg viewBox="0 0 '+W+' '+H+'" width="100%" style="max-height:220px">'+bars+'</svg>';
   }
@@ -984,11 +1055,12 @@
     $('#tr_acc').addEventListener('change',syncTr);syncTr();
   }
   function periodForm(){
-    var p=APP.data.periods.filter(function(x){return x.id===APP.data.meta.currentPeriod;})[0]||{start:'',end:''};
-    openModal('<h3>调整统计周期</h3><div class="muted small mb">统计周期为每月5号~次月5号。修改后业绩汇总按此周期计算。</div>'+
+    var pid=(APP.state.tfMonth!=='all')?monthKeyToPid(APP.state.tfMonth):APP.data.meta.currentPeriod;
+    var p=APP.data.periods.filter(function(x){return x.id===pid;})[0]||{start:'',end:''};
+    openModal('<h3>调整统计月度边界</h3><div class="muted small mb">统计月度为每月5号~次月5号。修改后该月度汇总按此区间计算。</div>'+
       field('开始日期',inp('pe_start',p.start))+
       field('结束日期',inp('pe_end',p.end))+
-      '<div class="row" style="justify-content:flex-end"><button class="btn ghost" data-x>取消</button><button class="btn" data-act="periodSave">保存</button></div>');
+      '<div class="row" style="justify-content:flex-end"><button class="btn ghost" data-x>取消</button><button class="btn" data-act="periodSave" data-id="'+pid+'">保存</button></div>');
   }
 
   /* 私域群表单 */
@@ -1115,8 +1187,8 @@
         r.note=$('#tr_note').value;
         if(!id)APP.data.traffic.unshift(r);save();closeModal();render();toast('已保存');break;}
       case 'periodEdit':periodForm();break;
-      case 'periodSave':{var p=APP.data.periods.filter(function(x){return x.id===APP.data.meta.currentPeriod;})[0];
-        if(p){p.start=$('#pe_start').value;p.end=$('#pe_end').value;save();closeModal();render();toast('周期已更新');}break;}
+      case 'periodSave':{var p=APP.data.periods.filter(function(x){return x.id===id;})[0];
+        if(p){p.start=$('#pe_start').value;p.end=$('#pe_end').value;save();closeModal();render();toast('月度边界已更新');}break;}
       case 'groupAdd':groupForm();break;
       case 'groupEdit':groupForm(find(APP.data.groups,id));break;
       case 'groupDel':if(confirm('确认删除该群？')){APP.data.groups=APP.data.groups.filter(function(x){return x.id!==id;});save();render();toast('已删除');}break;
@@ -1125,6 +1197,21 @@
         g.name=$('#gr_name').value;g.member=Number($('#gr_mem').value)||0;g.owner=$('#gr_owner').value;
         g.addFriend=Number($('#gr_add').value)||0;g.note=$('#gr_note').value;g.convertOwner=convertOwnerOf(g.name);
         if(!id)APP.data.groups.unshift(g);save();closeModal();render();toast('已保存');break;}
+      case 'accAdd':accForm();break;
+      case 'accEdit':accForm(find(APP.data.accounts,id));break;
+      case 'accDel':if(confirm('确认删除该账号档案？')){APP.data.accounts=APP.data.accounts.filter(function(x){return x.id!==id;});save();render();toast('已删除');}break;
+      case 'accSave':{
+        var a=id?find(APP.data.accounts,id):{id:uid()};
+        a.name=$('#ac_name').value;
+        var tv=$('#ac_type').value;
+        if(tv==='official'){a.type='official';a.cat='官方号';}
+        else if(tv==='self'){a.type='self';a.cat='自营号';}
+        else if(tv==='pt'){a.type='parttime';a.cat='兼职号';}
+        else {a.type='parttime';a.cat='高分学长学姐号';}
+        a.holder=$('#ac_holder').value;a.owner=$('#ac_owner').value;
+        a.rate=Number($('#ac_rate').value)||1;a.active=$('#ac_active').value==='1';
+        a.persona=$('#ac_persona').value;a.note=$('#ac_note').value;
+        if(!id)APP.data.accounts.unshift(a);save();closeModal();render();toast('已保存');break;}
       case 'matAdd':matForm();break;
       case 'matEdit':matForm(find(APP.data.materials,id));break;
       case 'matDel':if(confirm('确认删除该资料？')){APP.data.materials=APP.data.materials.filter(function(x){return x.id!==id;});save();render();toast('已删除');}break;
@@ -1170,23 +1257,22 @@
     $('#ham').addEventListener('click',function(){$('#nav').classList.add('show');$('#scrim').classList.add('show');});
     $('#scrim').addEventListener('click',closeNav);
     $('#mask').addEventListener('click',function(e){if(e.target.id==='mask')closeModal();});
-    // 导入 + 考核周期切换 + 资料文件上传
+    // 导入 + 月度/周/账号筛选 + 资料文件上传
     document.addEventListener('change',function(e){
       var t=e.target;if(!t)return;
       if(t.id==='importFile'){var f=t.files[0];if(!f)return;
         var rd=new FileReader();rd.onload=function(){try{var d=JSON.parse(rd.result);if(d&&d.accounts){APP.data=d;save();render();toast('导入成功');}else toast('文件格式不正确');}catch(err){toast('解析失败');}};
         rd.readAsText(f);}
-      if(t.id==='periodSel'){APP.data.meta.currentPeriod=t.value;save();
-        var pp=getPeriod(t.value);$('#periodPill').textContent='周期 '+(pp?(pp.start+'~'+pp.end):'-');
-        var v=$('#view');if(v){v.innerHTML=viewTraffic();bindView();}toast('已切换考核周期');}
       if(t.id==='tfPeriod'){APP.state.tfPeriod = t.value; var vf=$('#view');if(vf){vf.innerHTML=viewTraffic();bindView();}}
       if(t.id==='tfMonth'){APP.state.tfMonth=t.value; APP.state.tfPeriod=''; var vm=$('#view');if(vm){vm.innerHTML=viewTraffic();bindView();}}
       if(t.id==='tfAcc'){APP.state.tfAcc=t.value; var va=$('#view');if(va){va.innerHTML=viewTraffic();bindView();}}
+      if(t.id==='privScope'){APP.state.privScope=t.value; var vp=$('#view');if(vp){vp.innerHTML=viewPrivate();bindView();}}
       if(t.id==='matFile'){var fl=t.files;if(!fl||!fl.length)return;handleFiles(fl);t.value='';}
     });
     renderNav();
-    var pid=APP.data.meta.currentPeriod;var p=APP.data.periods.filter(function(x){return x.id===pid;})[0];
-    $('#periodPill').textContent='周期 '+(p?(p.start+'~'+p.end):'-');
+    APP.state.tfMonth=currentMonthKey();
+    var cpid=currentMonthPid();var cp=APP.data.periods.filter(function(x){return x.id===cpid;})[0];
+    $('#periodPill').textContent='本月度 '+(cp?(cp.start+'~'+cp.end):'-');
     navigate('dashboard');
   }
   init();
