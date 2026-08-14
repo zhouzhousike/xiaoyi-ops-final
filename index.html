@@ -257,6 +257,13 @@
   function today(){return fmtDate(new Date());}
   function daysBetween(a,b){return Math.round((new Date(b)-new Date(a))/86400000);}
   function toast(msg){var t=$('#toast');t.textContent=msg;t.classList.add('show');clearTimeout(APP._tt);APP._tt=setTimeout(function(){t.classList.remove('show');},2200);}
+  // 统计月度归属：每月5号~次月5号为一个周期（如 8.5–9.5=p_0805）；<5号归上月
+  function pidOf(dateStr){
+    var d=new Date(dateStr+'T00:00:00');var dd=d.getDate();
+    var m=d.getMonth()+1;
+    if(dd<5){m=m-1;if(m<=0)m+=12;}
+    return 'p_'+pad2(m)+'05';
+  }
 
   /* ---------- 种子数据 ---------- */
   function seed(){
@@ -280,12 +287,6 @@
       {id:'p_0805',start:'2026-08-05',end:'2026-09-05',note:'当前周期'}
     ];
     // 引流数据（按统计周期/阶段录入，不按某一天）。官号=加好友，自营/兼职=进群。来源：工作记录.xlsx 全量
-    function pidOf(dateStr){
-      var d=new Date(dateStr+'T00:00:00');var dd=d.getDate();
-      var m=d.getMonth()+1;
-      if(dd<5){m=m-1;if(m<=0)m+=12;}
-      return 'p_'+pad2(m)+'05';
-    }
     function T(cycle,cstart,accId,n){var off=(accId==='acc_off');return {id:uid(),periodId:pidOf(cstart),cycle:cycle,cstart:cstart,accountId:accId,join:off?0:n,addFriend:off?n:0,note:''};}
     var traffic=[
       T('5.21-6.5','2026-05-21','acc_off',69),T('5.21-6.5','2026-05-21','acc_hengbai',141),T('5.21-6.5','2026-05-21','acc_xt',97),T('5.21-6.5','2026-05-21','acc_ddy',16),T('5.21-6.5','2026-05-21','acc_gc',7),T('5.21-6.5','2026-05-21','acc_qing',11),T('5.21-6.5','2026-05-21','acc_tk',17),
@@ -301,14 +302,14 @@
       T('8.5-8.9','2026-08-05','acc_off',78),T('8.5-8.9','2026-08-05','acc_hengbai',4),T('8.5-8.9','2026-08-05','acc_ddy',8),T('8.5-8.9','2026-08-05','acc_qing',1),T('8.5-8.9','2026-08-05','acc_wanzi',0)
     ];
     var groups=[
-      {id:uid(),name:'27 59群',member:101,owner:'宇天派哥',addFriend:101,convertOwner:'宇天派哥'},
-      {id:uid(),name:'27 58群',member:105,owner:'宇天希哥',addFriend:105,convertOwner:'宇天希哥'},
-      {id:uid(),name:'27 57群',member:107,owner:'宇天派哥',addFriend:107,convertOwner:'宇天派哥'},
-      {id:uid(),name:'27 56群',member:100,owner:'宇天希哥',addFriend:100,convertOwner:'宇天希哥'},
-      {id:uid(),name:'27 55群',member:106,owner:'宇天派哥',addFriend:106,convertOwner:'宇天派哥'},
-      {id:uid(),name:'27 54群',member:146,owner:'宇天希哥',addFriend:146,convertOwner:'宇天希哥'},
-      {id:uid(),name:'27 53群',member:104,owner:'宇天派哥',addFriend:104,convertOwner:'宇天派哥'},
-      {id:uid(),name:'27 52群',member:72,owner:'宇天希哥',addFriend:72,convertOwner:'宇天希哥'}
+      {id:uid(),name:'27 59群',member:101,owner:'宇天派哥',addFriend:101,convertOwner:'宇天派哥',cat:'27考研'},
+      {id:uid(),name:'27 58群',member:105,owner:'宇天希哥',addFriend:105,convertOwner:'宇天希哥',cat:'27考研'},
+      {id:uid(),name:'27 57群',member:107,owner:'宇天派哥',addFriend:107,convertOwner:'宇天派哥',cat:'27考研'},
+      {id:uid(),name:'27 56群',member:100,owner:'宇天希哥',addFriend:100,convertOwner:'宇天希哥',cat:'27考研'},
+      {id:uid(),name:'27 55群',member:106,owner:'宇天派哥',addFriend:106,convertOwner:'宇天派哥',cat:'27考研'},
+      {id:uid(),name:'27 54群',member:146,owner:'宇天希哥',addFriend:146,convertOwner:'宇天希哥',cat:'27考研'},
+      {id:uid(),name:'27 53群',member:104,owner:'宇天派哥',addFriend:104,convertOwner:'宇天派哥',cat:'27考研'},
+      {id:uid(),name:'27 52群',member:72,owner:'宇天希哥',addFriend:72,convertOwner:'宇天希哥',cat:'27考研'}
     ];
     var materials=[
       {id:uid(),name:'26考研数据结构强化课程',type:'课程',audience:'26',status:'已放',version:'v1',obtain:'进群',intro:'数据结构强化专题，Q老师主讲，实战应试向'},
@@ -820,12 +821,28 @@
   /* ---------- 私域运营 ---------- */
   function viewPrivate(){
     var gs=APP.data.groups;
+    var totalAdd=gs.reduce(function(s,g){return s+(Number(g.addFriend)||0);},0);
+    var totalMem=gs.length*200; // 每个群默认200人
+    var rateAll=totalMem>0?Math.round(totalAdd/totalMem*100):0;
     var scope=APP.state.privScope||'all';
+    // 范围下拉：全部群合计 / 27考研 / 28考研 / 群号
     var scopeOpts='<option value="all"'+(scope==='all'?' selected':'')+'>全部群合计</option>'+
-      gs.map(function(g){return '<option value="'+g.id+'"'+(scope===g.id?' selected':'')+'>'+esc(g.name)+'</option>';}).join('');
+      '<option value="27"'+(scope==='27'?' selected':'')+'>27考研</option>'+
+      '<option value="28"'+(scope==='28'?' selected':'')+'>28考研</option>'+
+      '<option value="num"'+(scope==='num'?' selected':'')+'>群号</option>';
+    var head='<div class="grid g4 mb">'+
+      stat('群总数','total',gs.length+' 个','')+
+      stat('群成员合计','official',totalMem+' 人','')+
+      stat('加好友合计','parttime',totalAdd+' 人','转私域深度')+
+      stat('转私域转化率','ok',rateAll+'%','加好友/总人数')+
+      '</div>';
     // 群清单：按群号从大到小排列（大号在上）；格式：27 59群 [负责人标签] 加好友/总人数
     var gNum=function(name){var m=String(name||'').match(/(\d+)\D*$/);return m?parseInt(m[1],10):0;};
-    var sortedGs=gs.slice().sort(function(a,b){return gNum(b.name)-gNum(a.name);});
+    var catOf=function(g){return g.cat||'27考研';};
+    var sortedGs=gs.slice();
+    if(scope==='27')sortedGs=sortedGs.filter(function(g){return catOf(g)==='27考研';});
+    else if(scope==='28')sortedGs=sortedGs.filter(function(g){return catOf(g)==='28考研';});
+    sortedGs=sortedGs.sort(function(a,b){return gNum(b.name)-gNum(a.name);});
     var list='<div class="card"><div class="row mb" style="justify-content:space-between"><h3 style="margin:0">'+I.group+'加好友 / 总人数 转化率</h3>'+
       '<label class="fl" style="margin:0">范围<select id="privScope">'+scopeOpts+'</select></label></div>'+
       '<div class="list">'+(sortedGs.length?sortedGs.map(function(g){
@@ -839,7 +856,7 @@
           '<div class="m">加好友 '+af+' / 总 '+mem+' 人</div></div>'+
           '<div style="text-align:right"><div class="num" style="font-size:18px;color:var(--ok)">'+rate+'%</div><div class="muted small">转化率</div></div></div>';
       }).join(''):'<div class="empty">暂无群</div>')+'</div></div>';
-    return list;
+    return head+list;
   }
 
   /* ---------- 课程资料 ---------- */
@@ -1135,6 +1152,7 @@
   /* ---------- 事件绑定 ---------- */
   function bindView(){
     document.getElementById('view').addEventListener('click',onViewClick);
+    document.getElementById('mask').addEventListener('click',onViewClick);
   }
   function onViewClick(e){
     var el=e.target.closest('[data-act],[data-nav],[data-sub],[data-go],[data-stage],[data-audience],[data-heat],[data-mfilter],[data-accfilter],[data-x]');
