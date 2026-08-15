@@ -387,7 +387,7 @@
   function scoreOf(rec){var a=accById(rec.accountId);if(!a)return 0;return recNum(rec)*a.rate;}
   function getPeriod(pid){return APP.data.periods.filter(function(x){return x.id===pid;})[0];}
   // 当前统计月度 key（YYYY-MM，跟随 today）：每月5号~次月5号为一个统计月度
-  function currentMonthKey(){var d=new Date();return d.getFullYear()+'-'+pad2(d.getMonth()+1);}
+  function currentMonthKey(){return pidToMonthKey(pidOf(today()));}
   // 当前统计月度对应的 period id（today 落在哪个 5号~次月5号 区间）
   function currentMonthPid(){
     var t=today();
@@ -831,10 +831,10 @@
   function viewTraffic(){
     var mKey=APP.state.tfMonth;
     var isAll=(mKey==='all');
-    // 先按日历月份过滤，后续头部/图表/明细统一用这套数据
+    // 先按统计月度周期过滤（每月5号~次月5号），后续头部/图表/明细统一用这套数据
     var allTraffic=APP.data.traffic;
     var monthFiltered=allTraffic;
-    if(!isAll){monthFiltered=monthFiltered.filter(function(r){return calMonthOf(r.cstart||cycleStart(r.cycle))===mKey;});}
+    if(!isAll){var mp=getPeriod(monthKeyToPid(mKey));monthFiltered=monthFiltered.filter(function(r){return inPeriod(r,mp);});}
     // 从过滤后数据算分（保证头部卡片=柱状图=明细表，三处口径一致）
     var sc=isAll?allTimeScore():scoreFromRecs(monthFiltered);
     var mLabel=isAll?'全部月度':(mKey.substring(0,4)+'年'+Number(mKey.substring(5))+'月');
@@ -844,9 +844,9 @@
       stat('兼职号·进群','parttime',sc.pt.join+' 人',sc.pt.score+' 分（×1）')+
       stat('总积分','total',sc.total+' 分',isAll?'全部月度':mLabel)+
       '</div>';
-    // 月度选择（日历月份：用户选"7月"=只看cstart在7月的记录）
+    // 月度选择（按月度周期：用户选"8月"=看8月5号~9月5号的记录）
     var allTraffic=APP.data.traffic;
-    var mset={};allTraffic.forEach(function(r){var cs=r.cstart||cycleStart(r.cycle);mset[calMonthOf(cs)]=1;});
+    var mset={};allTraffic.forEach(function(r){var cs=r.cstart||cycleStart(r.cycle);mset[pidToMonthKey(pidOf(cs))]=1;});
     var months=Object.keys(mset).sort().reverse();
     var curMK=currentMonthKey();if(!mset[curMK]){months.unshift(curMK);}
     var monthOpts='<option value="all"'+(isAll?' selected':'')+'>全部月度</option>'+
@@ -855,7 +855,7 @@
     var periodInfo='<div class="card mb">'+
       '<div class="row" style="flex-wrap:wrap;gap:10px;margin-bottom:12px"><div class="body" style="flex:1;min-width:220px"><b>统计月度：</b>'+
         '<select id="tfMonth" style="width:auto;display:inline-block">'+monthOpts+'</select>'+
-        '　<span class="muted small">（按日历月份筛选）</span></div>'+
+        '　<span class="muted small">（按月度周期：每月5号~次月5号）</span></div>'+
         '<button class="btn sm ghost" data-act="periodEdit">调整月度边界</button></div>'+
       '<div class="row" style="gap:8px;flex-wrap:wrap">'+
         smini('官方号',sc.off.join,sc.off.score,'var(--official)')+
