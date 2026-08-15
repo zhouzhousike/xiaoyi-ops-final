@@ -571,7 +571,6 @@
       '<div class="grid g2">'+
         '<div class="card"><h3>'+I.chart+'本月度各号引流趋势（按周）</h3><div class="chartbox">'+trend+'</div></div>'+
         '<div class="card"><h3>'+I.chart+'本月度三类引流对比</h3><div class="chartbox">'+bar+'</div>'+
-          '<div class="kv"><span class="muted">兼职小计（自动）</span><b>'+ptSub+' 人</b></div>'+
           '<div class="kv"><span class="muted">周期</span><b>'+(p?esc(p.start)+' ~ '+esc(p.end):'-')+'</b></div>'+
         '</div>'+
       '</div>'+
@@ -824,7 +823,7 @@
     var mKey=APP.state.tfMonth;
     var isAll=(mKey==='all');
     var mLabel=isAll?'全部':(mKey.substring(0,4)+'年'+Number(mKey.substring(5))+'月');
-    var footer='<div style="display:flex;justify-content:space-between;font-size:12px;color:#97979C;margin-top:10px;padding:0 4px"><span>兼职小计（自动）　<b style="color:#56565B">'+ptTotal+' 人</b></span><span>统计月份　<b style="color:#56565B">'+mLabel+'</b></span></div>';
+    var footer='<div style="display:flex;justify-content:flex-end;font-size:12px;color:#97979C;margin-top:10px;padding:0 4px"><span>统计月份　<b style="color:#56565B">'+mLabel+'</b></span></div>';
     return '<div class="card"><h3 style="margin:0 0 12px 0;font-size:14px">📊 本月度三类引流对比</h3>'+
       '<svg viewBox="0 0 '+W+' '+H+'" style="width:100%;height:auto;display:block">'+rects+'</svg>'+footer+'</div>';
   }
