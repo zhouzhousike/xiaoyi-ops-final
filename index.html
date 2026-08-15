@@ -264,8 +264,20 @@
     if(dd<5){m=m-1;if(m<=0)m+=12;}
     return 'p_'+pad2(m)+'05';
   }
+  // 日历月份（YYYY-MM），用于明细表月度筛选（用户选"7月"=只看7月的周，不含跨月周期）
+  function calMonthOf(dateStr){return dateStr.substring(0,7);}
 
   /* ---------- 种子数据 ---------- */
+  function seedGroups(){return [
+      {id:uid(),name:'27 59群',member:101,owner:'宇天派哥',addFriend:101,convertOwner:'宇天派哥',cat:'27考研'},
+      {id:uid(),name:'27 58群',member:105,owner:'宇天希哥',addFriend:105,convertOwner:'宇天希哥',cat:'27考研'},
+      {id:uid(),name:'27 57群',member:107,owner:'宇天派哥',addFriend:107,convertOwner:'宇天派哥',cat:'27考研'},
+      {id:uid(),name:'27 56群',member:100,owner:'宇天希哥',addFriend:100,convertOwner:'宇天希哥',cat:'27考研'},
+      {id:uid(),name:'27 55群',member:106,owner:'宇天派哥',addFriend:106,convertOwner:'宇天派哥',cat:'27考研'},
+      {id:uid(),name:'27 54群',member:146,owner:'宇天希哥',addFriend:146,convertOwner:'宇天希哥',cat:'27考研'},
+      {id:uid(),name:'27 53群',member:104,owner:'宇天派哥',addFriend:104,convertOwner:'宇天派哥',cat:'27考研'},
+      {id:uid(),name:'27 52群',member:72,owner:'宇天希哥',addFriend:72,convertOwner:'宇天希哥',cat:'27考研'}
+    ];}
   function seed(){
     var accounts=[
       {id:'acc_off',name:'宇天408计算机考研',type:'official',rate:3,holder:'小艺',owner:'小艺/蒋老师',active:true,persona:'官方主阵地',note:'官方号，引流分3倍，核心指标=加好友'},
@@ -301,16 +313,7 @@
       T('8.3-8.4','2026-08-03','acc_off',7),T('8.3-8.4','2026-08-03','acc_hengbai',7),T('8.3-8.4','2026-08-03','acc_ddy',8),T('8.3-8.4','2026-08-03','acc_qing',1),T('8.3-8.4','2026-08-03','acc_wanzi',7),
       T('8.5-8.9','2026-08-05','acc_off',78),T('8.5-8.9','2026-08-05','acc_hengbai',4),T('8.5-8.9','2026-08-05','acc_ddy',8),T('8.5-8.9','2026-08-05','acc_qing',1),T('8.5-8.9','2026-08-05','acc_wanzi',0)
     ];
-    var groups=[
-      {id:uid(),name:'27 59群',member:101,owner:'宇天派哥',addFriend:101,convertOwner:'宇天派哥',cat:'27考研'},
-      {id:uid(),name:'27 58群',member:105,owner:'宇天希哥',addFriend:105,convertOwner:'宇天希哥',cat:'27考研'},
-      {id:uid(),name:'27 57群',member:107,owner:'宇天派哥',addFriend:107,convertOwner:'宇天派哥',cat:'27考研'},
-      {id:uid(),name:'27 56群',member:100,owner:'宇天希哥',addFriend:100,convertOwner:'宇天希哥',cat:'27考研'},
-      {id:uid(),name:'27 55群',member:106,owner:'宇天派哥',addFriend:106,convertOwner:'宇天派哥',cat:'27考研'},
-      {id:uid(),name:'27 54群',member:146,owner:'宇天希哥',addFriend:146,convertOwner:'宇天希哥',cat:'27考研'},
-      {id:uid(),name:'27 53群',member:104,owner:'宇天派哥',addFriend:104,convertOwner:'宇天派哥',cat:'27考研'},
-      {id:uid(),name:'27 52群',member:72,owner:'宇天希哥',addFriend:72,convertOwner:'宇天希哥',cat:'27考研'}
-    ];
+    var groups=seedGroups();
     var materials=[
       {id:uid(),name:'26考研数据结构强化课程',type:'课程',audience:'26',status:'已放',version:'v1',obtain:'进群',intro:'数据结构强化专题，Q老师主讲，实战应试向'},
       {id:uid(),name:'26考研计组强化课程',type:'课程',audience:'26',status:'已放',version:'v1',obtain:'进群',intro:'计算机组成原理强化，含高频考点切片'},
@@ -440,6 +443,19 @@
       addFriend:APP.data.traffic.reduce(function(s,r){return s+(Number(r.addFriend)||0);},0)};
     function rd(o){o.score=Math.round(o.score);return o;}
   }
+  // 从任意记录数组计算三类分数（用于日历月份筛选后的统计）
+  function scoreFromRecs(recs){
+    var off={join:0,score:0},self={join:0,score:0},pt={join:0,score:0};
+    recs.forEach(function(r){
+      var a=accById(r.accountId); if(!a)return; var j=recNum(r);
+      if(a.type==='official'){off.join+=j;off.score+=j*a.rate;}
+      else if(a.type==='self'){self.join+=j;self.score+=j*a.rate;}
+      else {pt.join+=j;pt.score+=j*a.rate;}
+    });
+    return {off:rd(off),self:rd(self),pt:rd(pt),total:Math.round(off.score+self.score+pt.score),
+      addFriend:recs.reduce(function(s,r){return s+(Number(r.addFriend)||0);},0)};
+    function rd(o){o.score=Math.round(o.score);return o;}
+  }
   // 解析统计周期标签的起始日（用于周期归属与排序）。'8.5-8.9'->2026-08-05；也兼容完整日期
   function cycleStart(cycle){
     var s=String(cycle||'').trim();
@@ -566,9 +582,10 @@
   }
   function stat(k,cls,v,x){return '<div class="stat '+cls+'"><div class="k">'+k+'</div><div class="v">'+v+'</div><div class="x">'+x+'</div></div>';}
   // 周期汇总小卡：人数 + 对应分数（分数可为空字符串）
-  function smini(k,v,score,color){
+  function smini(k,v,score,color,unit){
+    if(!unit)unit=' 人';
     return '<div class="smini" style="border-left:3px solid '+color+'"><div class="k">'+k+'</div>'+
-      '<div class="v">'+v+' 人</div>'+(score!==''?'<div class="x">'+score+' 分</div>':'')+'</div>';
+      '<div class="v">'+v+unit+'</div>'+(score!==''?'<div class="x">'+score+' 分</div>':'')+'</div>';
   }
   function sumCycle(pid,cycle,type){
     return periodRecs(pid).filter(function(r){var a=accById(r.accountId);return r.cycle===cycle&&a&&a.type===type;})
@@ -806,10 +823,8 @@
     var ptTotal=sc.pt.join;
     var mKey=APP.state.tfMonth;
     var isAll=(mKey==='all');
-    var pid=isAll?null:monthKeyToPid(mKey);
-    var p=getPeriod(pid||APP.data.meta.currentPeriod);
-    var pRange=p?(p.start+' ~ '+p.end):'-';
-    var footer='<div style="display:flex;justify-content:space-between;font-size:12px;color:#97979C;margin-top:10px;padding:0 4px"><span>兼职小计（自动）　<b style="color:#56565B">'+ptTotal+' 人</b></span><span>周期　<b style="color:#56565B">'+pRange+'</b></span></div>';
+    var mLabel=isAll?'全部':(mKey.substring(0,4)+'年'+Number(mKey.substring(5))+'月');
+    var footer='<div style="display:flex;justify-content:space-between;font-size:12px;color:#97979C;margin-top:10px;padding:0 4px"><span>兼职小计（自动）　<b style="color:#56565B">'+ptTotal+' 人</b></span><span>统计月份　<b style="color:#56565B">'+mLabel+'</b></span></div>';
     return '<div class="card"><h3 style="margin:0 0 12px 0;font-size:14px">📊 本月度三类引流对比</h3>'+
       '<svg viewBox="0 0 '+W+' '+H+'" style="width:100%;height:auto;display:block">'+rects+'</svg>'+footer+'</div>';
   }
@@ -817,8 +832,12 @@
   function viewTraffic(){
     var mKey=APP.state.tfMonth;
     var isAll=(mKey==='all');
-    var pid=isAll?null:monthKeyToPid(mKey);
-    var sc=isAll?allTimeScore():periodScore(pid);
+    // 先按日历月份过滤，后续头部/图表/明细统一用这套数据
+    var allTraffic=APP.data.traffic;
+    var monthFiltered=allTraffic;
+    if(!isAll){monthFiltered=monthFiltered.filter(function(r){return calMonthOf(r.cstart||cycleStart(r.cycle))===mKey;});}
+    // 从过滤后数据算分（保证头部卡片=柱状图=明细表，三处口径一致）
+    var sc=isAll?allTimeScore():scoreFromRecs(monthFiltered);
     var mLabel=isAll?'全部月度':(mKey.substring(0,4)+'年'+Number(mKey.substring(5))+'月');
     var head='<div class="grid g4 mb">'+
       stat('官方号·加好友','official',sc.off.join+' 人',sc.off.score+' 分（×3）')+
@@ -826,9 +845,9 @@
       stat('兼职号·进群','parttime',sc.pt.join+' 人',sc.pt.score+' 分（×1）')+
       stat('总积分','total',sc.total+' 分',isAll?'全部月度':mLabel)+
       '</div>';
-    // 月度选择（基于 pidOf 周期归属：每月5号~次月5号，不是纯日历月）
+    // 月度选择（日历月份：用户选"7月"=只看cstart在7月的记录）
     var allTraffic=APP.data.traffic;
-    var mset={};allTraffic.forEach(function(r){var cs=r.cstart||cycleStart(r.cycle);mset[pidToMonthKey(pidOf(cs))]=1;});
+    var mset={};allTraffic.forEach(function(r){var cs=r.cstart||cycleStart(r.cycle);mset[calMonthOf(cs)]=1;});
     var months=Object.keys(mset).sort().reverse();
     var curMK=currentMonthKey();if(!mset[curMK]){months.unshift(curMK);}
     var monthOpts='<option value="all"'+(isAll?' selected':'')+'>全部月度</option>'+
@@ -837,18 +856,16 @@
     var periodInfo='<div class="card mb">'+
       '<div class="row" style="flex-wrap:wrap;gap:10px;margin-bottom:12px"><div class="body" style="flex:1;min-width:220px"><b>统计月度：</b>'+
         '<select id="tfMonth" style="width:auto;display:inline-block">'+monthOpts+'</select>'+
-        '　<span class="muted small">（每月5号~次月5号；默认本月）</span></div>'+
+        '　<span class="muted small">（按日历月份筛选）</span></div>'+
         '<button class="btn sm ghost" data-act="periodEdit">调整月度边界</button></div>'+
       '<div class="row" style="gap:8px;flex-wrap:wrap">'+
         smini('官方号',sc.off.join,sc.off.score,'var(--official)')+
         smini('自营号',sc.self.join,sc.self.score,'var(--self)')+
         smini('兼职号',sc.pt.join,sc.pt.score,'var(--parttime)')+
         smini('三类合计人数',grandJoin,'','#B6C2CF')+
-        smini('三类合计分数',sc.total,'','#7C8997')+
+        smini('三类合计分数',sc.total,'','#7C8997',' 分')+
       '</div></div>';
-    // 明细筛选：月度（基于pidOf周期归属）→ 周（级联该月各周）→ 账号
-    var monthFiltered=allTraffic;
-    if(!isAll){var targetPid=monthKeyToPid(mKey);monthFiltered=monthFiltered.filter(function(r){return pidOf(r.cstart||cycleStart(r.cycle))===targetPid;});}
+    // 明细筛选：月度（日历月份）→ 周（级联该月各周）→ 账号（monthFiltered 已在函数开头定义）
     var fP=APP.state.tfPeriod;
     var recs=monthFiltered;
     if(fP&&fP!=='all'){recs=recs.filter(function(r){return r.cycle===fP;});}
@@ -942,7 +959,8 @@
     var list='<div class="card"><div class="row mb" style="justify-content:space-between;flex-wrap:wrap;gap:8px"><h3 style="margin:0">'+I.group+'加好友 / 总人数 转化率</h3>'+
       '<div class="row" style="gap:8px;flex-wrap:wrap"><label class="fl" style="margin:0">考研年份<select id="privYear">'+yearOpts+'</select></label>'+
       '<label class="fl" style="margin:0">咨询师<select id="privConsult">'+consultOpts+'</select></label>'+
-      '<button class="btn sm" data-act="groupAdd">'+I.plus+'加群</button></div></div>'+
+      '<button class="btn sm" data-act="groupAdd">'+I.plus+'加群</button>'+
+      '<button class="btn sm ghost" data-act="resetGroups" title="把群列表恢复为示例8群（含正确加好友数），不影响其他数据">恢复示例群数据</button></div></div>'+
       '<div class="list">'+(sortedGs.length?sortedGs.map(function(g){
         var gn=gNum(g.name);
         var mem=Number(g.member)||200; // 每个群默认200人
@@ -1363,6 +1381,7 @@
       case 'export':exportJSON();break;
       case 'import':$('#importFile').click();break;
       case 'reset':resetData();break;
+      case 'resetGroups':resetGroups();break;
     }
   }
   function exportJSON(){
@@ -1373,6 +1392,11 @@
   function resetData(){
     if(confirm('确认清空所有数据并恢复预置示例？此操作不可撤销。')){
       APP.data=seed();save();render();toast('已恢复示例数据');
+    }
+  }
+  function resetGroups(){
+    if(confirm('恢复示例群数据？当前群列表（含你手动添加的群）将被示例8群覆盖。其他数据不受影响。')){
+      APP.data.groups=seedGroups();save();render();toast('已恢复示例群数据');
     }
   }
 
