@@ -269,14 +269,14 @@
 
   /* ---------- 种子数据 ---------- */
   function seedGroups(){return [
-      {id:uid(),name:'27 59群',member:101,owner:'宇天派哥',addFriend:101,convertOwner:'宇天派哥',cat:'27考研'},
-      {id:uid(),name:'27 58群',member:105,owner:'宇天希哥',addFriend:105,convertOwner:'宇天希哥',cat:'27考研'},
-      {id:uid(),name:'27 57群',member:107,owner:'宇天派哥',addFriend:107,convertOwner:'宇天派哥',cat:'27考研'},
-      {id:uid(),name:'27 56群',member:100,owner:'宇天希哥',addFriend:100,convertOwner:'宇天希哥',cat:'27考研'},
-      {id:uid(),name:'27 55群',member:106,owner:'宇天派哥',addFriend:106,convertOwner:'宇天派哥',cat:'27考研'},
-      {id:uid(),name:'27 54群',member:146,owner:'宇天希哥',addFriend:146,convertOwner:'宇天希哥',cat:'27考研'},
-      {id:uid(),name:'27 53群',member:104,owner:'宇天派哥',addFriend:104,convertOwner:'宇天派哥',cat:'27考研'},
-      {id:uid(),name:'27 52群',member:72,owner:'宇天希哥',addFriend:72,convertOwner:'宇天希哥',cat:'27考研'}
+      {id:uid(),name:'27 59群',member:200,owner:'宇天派哥',addFriend:101,convertOwner:'宇天派哥',cat:'27考研'},
+      {id:uid(),name:'27 58群',member:200,owner:'宇天希哥',addFriend:105,convertOwner:'宇天希哥',cat:'27考研'},
+      {id:uid(),name:'27 57群',member:200,owner:'宇天派哥',addFriend:107,convertOwner:'宇天派哥',cat:'27考研'},
+      {id:uid(),name:'27 56群',member:200,owner:'宇天希哥',addFriend:100,convertOwner:'宇天希哥',cat:'27考研'},
+      {id:uid(),name:'27 55群',member:200,owner:'宇天派哥',addFriend:106,convertOwner:'宇天派哥',cat:'27考研'},
+      {id:uid(),name:'27 54群',member:200,owner:'宇天希哥',addFriend:146,convertOwner:'宇天希哥',cat:'27考研'},
+      {id:uid(),name:'27 53群',member:200,owner:'宇天派哥',addFriend:104,convertOwner:'宇天派哥',cat:'27考研'},
+      {id:uid(),name:'27 52群',member:200,owner:'宇天希哥',addFriend:72,convertOwner:'宇天希哥',cat:'27考研'}
     ];}
   function seed(){
     var accounts=[
@@ -963,7 +963,7 @@
       '<button class="btn sm ghost" data-act="resetGroups" title="把群列表恢复为示例8群（含正确加好友数），不影响其他数据">恢复示例群数据</button></div></div>'+
       '<div class="list">'+(sortedGs.length?sortedGs.map(function(g){
         var gn=gNum(g.name);
-        var mem=Number(g.member)||200; // 每个群默认200人
+        var mem=200; // 每个群默认200人（群上限，与 addFriend 区分）
         var af=Number(g.addFriend)||0;
         var rate=mem>0?Math.round(af/mem*100):0;
         var isEven=gn%2===0;
