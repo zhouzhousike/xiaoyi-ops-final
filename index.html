@@ -136,6 +136,12 @@
   .field label{display:block;font-size:12.5px;font-weight:700;color:var(--muted);margin-bottom:5px}
   .field input,.field select,.field textarea{width:100%;padding:10px 30px 10px 11px;border:1px solid var(--line);border-radius:10px;font-size:15px;font-family:inherit;background:#fff;color:var(--ink)}
   .field textarea{resize:vertical;min-height:64px}
+  .grid2{display:grid;grid-template-columns:1fr 1fr;gap:0 12px}
+  .mini{padding:7px 28px 7px 10px;border:1px solid var(--line);border-radius:9px;font-size:13px;background:#fff;color:var(--ink);font-family:inherit}
+  .mini:focus{outline:none;border-color:var(--brand);box-shadow:0 0 0 3px var(--brand-l)}
+  .pub-summary{background:var(--brand-l);border:1px solid #E3E7F2;border-radius:10px;padding:9px 12px;font-size:12.5px;color:#3a4252;margin-bottom:12px}
+  .pub-summary b{color:var(--brand-d)}
+  .li .m.stats{font-size:12px;margin-top:2px}
   .field input:focus,.field select:focus,.field textarea:focus{outline:none;border-color:var(--brand);box-shadow:0 0 0 3px var(--brand-l)}
   .seg{display:flex;gap:6px;flex-wrap:wrap}
   .seg label{display:inline-flex;padding:8px 12px;border:1px solid var(--line);border-radius:9px;font-size:13px;font-weight:600;cursor:pointer;background:#fff}
@@ -509,7 +515,7 @@
     {key:'accounts',label:'账号管理',icon:I.acc},
     {key:'backup',label:'数据备份',icon:I.backup}
   ];
-  APP.state={view:'dashboard',sub:'topics',topicAudience:'27',topicStage:'全部',heatRange:'week',trafficTab:'table',matType:'全部',tfPeriod:'',tfMonth:'all',tfAcc:'all',privYear:'all',privConsult:'all',accTypeFilter:'all'};
+  APP.state={view:'dashboard',sub:'topics',topicAudience:'27',topicStage:'全部',heatRange:'week',trafficTab:'table',matType:'全部',tfPeriod:'',tfMonth:'all',tfAcc:'all',privYear:'all',privConsult:'all',accTypeFilter:'all',pubRange:'all',pubSort:'date_desc',pubAcc:'all',pubHot:false};
 
   function renderNav(){
     var m=$('#menu'); m.innerHTML=NAV.map(function(n){
@@ -708,19 +714,57 @@
           '<button class="btn sm danger" data-act="draftDel" data-id="'+d.id+'">'+I.trash+'</button></div></div>';
       }).join('')+'</div>';
   }
+  function parseDate(s){var p=String(s||'').split('-');return new Date(Number(p[0]),Number(p[1])-1,Number(p[2]||1));}
+  function startOfDay(d){return new Date(d.getFullYear(),d.getMonth(),d.getDate());}
+  function isThisWeek(d){
+    if(!d)return false;var now=new Date(),nowD=startOfDay(now);var day=now.getDay()||7;
+    var mon=new Date(nowD);mon.setDate(nowD.getDate()-(day-1));
+    var sun=new Date(mon);sun.setDate(mon.getDate()+7);var t=parseDate(d);
+    return t>=mon&&t<sun;
+  }
+  function isThisMonth(d){if(!d)return false;var now=new Date(),t=parseDate(d);return t.getFullYear()===now.getFullYear()&&t.getMonth()===now.getMonth();}
+  function isHotPost(p){return (Number(p.view||0)>=1000)||(Number(p.like||0)>=100);}
+  function pubStats(p){var a=accById(p.account);var isPT=a&&a.type==='parttime';return {view:Number(p.view||0),like:Number(p.like||0),fav:Number(p.fav||0),comment:Number(p.comment||0),isPT:isPT};}
+  function opt(pairs,sel){return pairs.map(function(o){return '<option value="'+o[0]+'"'+(o[0]===sel?' selected':'')+'>'+o[1]+'</option>';}).join('');}
   function publishesView(){
-    var arr=APP.data.publishes;
-    if(!arr.length)return '<div class="row mb"><button class="btn" data-act="pubAdd">'+I.plus+'记录发布</button></div><div class="empty">还没有发布记录</div>';
-    return '<div class="row mb"><button class="btn" data-act="pubAdd">'+I.plus+'记录发布</button></div>'+
-      '<div class="list">'+arr.map(function(p){
+    var all=APP.data.publishes.slice();
+    all=all.filter(function(p){
+      if(APP.state.pubRange==='week'&&!isThisWeek(p.date))return false;
+      if(APP.state.pubRange==='month'&&!isThisMonth(p.date))return false;
+      if(APP.state.pubAcc!=='all'&&p.account!==APP.state.pubAcc)return false;
+      if(APP.state.pubHot&&!isHotPost(p))return false;
+      return true;
+    });
+    var s=APP.state.pubSort;
+    all.sort(function(a,b){
+      if(s==='like_desc')return (Number(b.like||0))-(Number(a.like||0));
+      if(s==='fav_desc')return (Number(b.fav||0))-(Number(a.fav||0));
+      if(s==='view_desc')return (Number(b.view||0))-(Number(a.view||0));
+      return String(b.date||'').localeCompare(String(a.date||''));
+    });
+    var sum={view:0,like:0,fav:0,comment:0,hot:0};
+    all.forEach(function(p){var st=pubStats(p);if(!st.isPT)sum.view+=st.view;sum.like+=st.like;sum.fav+=st.fav;sum.comment+=st.comment;if(isHotPost(p))sum.hot++;});
+    if(!APP.data.publishes.length)return '<div class="row mb"><button class="btn" data-act="pubAdd">'+I.plus+'记录发布</button></div><div class="empty">还没有发布记录</div>';
+    var accOpts='<option value="all">全部账号</option>'+APP.data.accounts.map(function(a){return '<option value="'+a.id+'"'+(APP.state.pubAcc===a.id?' selected':'')+'>'+esc(a.name)+'（'+typeLabel(a.type)+'）</option>';}).join('');
+    var rangeLabel=APP.state.pubRange==='week'?'本周':(APP.state.pubRange==='month'?'本月':'全部');
+    return '<div class="row mb" style="gap:10px;flex-wrap:wrap;align-items:center">'+
+      '<button class="btn" data-act="pubAdd">'+I.plus+'记录发布</button>'+
+      '<select id="pubRange" class="mini">'+opt([['all','全部时间'],['week','本周发布'],['month','本月发布']],APP.state.pubRange)+'</select>'+
+      '<select id="pubSort" class="mini">'+opt([['date_desc','发布时间（新→旧）'],['like_desc','点赞高→低'],['fav_desc','收藏高→低'],['view_desc','浏览高→低']],APP.state.pubSort)+'</select>'+
+      '<select id="pubAcc" class="mini">'+accOpts+'</select>'+
+      '<button class="btn ghost'+(APP.state.pubHot?' active':'')+'" data-act="pubHotToggle">🔥 只看爆款</button>'+
+      '</div>'+
+      '<div class="pub-summary">当前'+rangeLabel+'共 <b>'+all.length+'</b> 篇 · 总浏览 <b>'+sum.view+'</b>（不含兼职号） · 总点赞 <b>'+sum.like+'</b> · 总收藏 <b>'+sum.fav+'</b> · 总评论 <b>'+sum.comment+'</b> · 爆款 <b>'+sum.hot+'</b> 篇</div>'+
+      '<div class="list">'+all.map(function(p){
+        var st=pubStats(p);
         var urls=extractUrls(p.link), first=urls[0];
         var linkPart='';
-        if(p.link){
-          linkPart=first?' · <a href="'+esc(first)+'" target="_blank">笔记</a>':' · <span class="muted">未识别到链接</span>';
-          linkPart+=' · <button class="btn sm ghost" data-act="copyLink" data-text="'+esc(p.link)+'">复制文案</button>';
-        }
-        return '<div class="li"><div class="body"><div class="t">'+esc(p.title)+'</div>'+
-          '<div class="m">'+esc(p.date)+' · '+esc(accName(p.account))+linkPart+'</div></div>'+
+        if(p.link){linkPart=first?' · <a href="'+esc(first)+'" target="_blank">笔记</a>':' · <span class="muted">未识别到链接</span>';linkPart+=' · <button class="btn sm ghost" data-act="copyLink" data-text="'+esc(p.link)+'">复制文案</button>';}
+        var hot=isHotPost(p)?' <span class="tag red">🔥爆款</span>':'';
+        var viewCell=st.isPT?'<span class="muted">兼职号不统计</span>':'<b>'+st.view+'</b>';
+        return '<div class="li"><div class="body"><div class="t">'+esc(p.title)+hot+'</div>'+
+          '<div class="m">'+esc(p.date)+' · '+esc(accName(p.account))+linkPart+'</div>'+
+          '<div class="m stats">浏览 '+viewCell+' · 点赞 <b>'+st.like+'</b> · 收藏 <b>'+st.fav+'</b> · 评论 <b>'+st.comment+'</b>'+(p.statTime?' · 统计于 '+esc(p.statTime):'')+'</div></div>'+
           '<div class="acts"><button class="btn sm ghost" data-act="pubEdit" data-id="'+p.id+'">'+I.edit+'</button>'+
           '<button class="btn sm danger" data-act="pubDel" data-id="'+p.id+'">'+I.trash+'</button></div></div>';
       }).join('')+'</div>';
@@ -1310,7 +1354,7 @@
       '<div class="row" style="justify-content:flex-end"><button class="btn ghost" data-x>取消</button><button class="btn" data-act="draftSave" data-id="'+(rec.id||'')+'">保存</button></div>');
   }
   function pubForm(rec){
-    rec=rec||{title:'',date:today(),account:APP.data.accounts[0].id,link:''};
+    rec=rec||{title:'',date:today(),account:APP.data.accounts[0].id,link:'',view:0,like:0,fav:0,comment:0,statTime:''};
     var urls=extractUrls(rec.link), first=urls[0];
     openModal('<h3>'+(rec.id?'编辑发布':'记录发布')+'</h3>'+
       field('标题',inp('pb_title',rec.title))+
@@ -1318,18 +1362,32 @@
       field('发布账号',sel('pb_acc',accOptions(rec.account)))+
       field('笔记分享文案','<textarea id="pb_link">'+esc(rec.link)+'</textarea>')+
       '<div id="pb_linkPreview" class="muted small mb">已识别链接：'+(first?'<a href="'+esc(first)+'" target="_blank">'+esc(first)+'</a>':'无')+'</div>'+
+      '<div class="grid2">'+
+        field('浏览量',inp('pb_view',rec.view))+
+        field('点赞量',inp('pb_like',rec.like))+
+        field('收藏量',inp('pb_fav',rec.fav))+
+        field('评论量',inp('pb_comment',rec.comment))+
+      '</div>'+
+      '<div id="pb_ptHint" class="muted small mb" style="display:none">⚠ 该账号为兼职号，浏览量不计入汇总统计</div>'+
+      field('数据统计时间',inp('pb_statTime',rec.statTime))+
       '<div class="row" style="justify-content:flex-end"><button class="btn ghost" data-x>取消</button><button class="btn" data-act="pubSave" data-id="'+(rec.id||'')+'">保存</button></div>');
     var updatePreview=function(){
       var u=extractUrls($('#pb_link').value), f=u[0];
       $('#pb_linkPreview').innerHTML='已识别链接：'+(f?'<a href="'+esc(f)+'" target="_blank">'+esc(f)+'</a>':'无');
     };
     $('#pb_link').addEventListener('input',updatePreview);
+    var syncPt=function(){var aa=accById($('#pb_acc').value);var h=document.getElementById('pb_ptHint');if(h)h.style.display=(aa&&aa.type==='parttime')?'block':'none';};
+    $('#pb_acc').addEventListener('change',syncPt);syncPt();
   }
 
   /* ---------- 事件绑定 ---------- */
   function bindView(){
     document.getElementById('view').addEventListener('click',onViewClick);
     document.getElementById('mask').addEventListener('click',onViewClick);
+    var pr=document.getElementById('pubRange'),ps=document.getElementById('pubSort'),pa=document.getElementById('pubAcc');
+    if(pr)pr.addEventListener('change',function(){APP.state.pubRange=this.value;var v=document.getElementById('view');v.innerHTML=viewContent();bindView();});
+    if(ps)ps.addEventListener('change',function(){APP.state.pubSort=this.value;var v=document.getElementById('view');v.innerHTML=viewContent();bindView();});
+    if(pa)pa.addEventListener('change',function(){APP.state.pubAcc=this.value;var v=document.getElementById('view');v.innerHTML=viewContent();bindView();});
   }
   function onViewClick(e){
     var el=e.target.closest('[data-act],[data-nav],[data-sub],[data-go],[data-stage],[data-audience],[data-heat],[data-mfilter],[data-accfilter],[data-x]');
@@ -1372,9 +1430,11 @@
       case 'pubEdit':pubForm(find(APP.data.publishes,id));break;
       case 'pubDel':if(confirm('确认删除？')){APP.data.publishes=APP.data.publishes.filter(function(x){return x.id!==id;});save();render();toast('已删除');}break;
       case 'copyLink':copyText(el.getAttribute('data-text'));break;
+      case 'pubHotToggle':APP.state.pubHot=!APP.state.pubHot;var vh=$('#view');if(vh){vh.innerHTML=viewContent();bindView();}break;
       case 'pubSave':{
         var p=id?find(APP.data.publishes,id):{id:uid()};
         p.title=$('#pb_title').value;p.date=$('#pb_date').value;p.account=$('#pb_acc').value;p.link=$('#pb_link').value;
+        p.view=Number($('#pb_view').value)||0;p.like=Number($('#pb_like').value)||0;p.fav=Number($('#pb_fav').value)||0;p.comment=Number($('#pb_comment').value)||0;p.statTime=$('#pb_statTime').value;
         if(!id)APP.data.publishes.unshift(p);save();closeModal();render();toast('已保存');break;}
       case 'trafficAdd':trafficForm();break;
       case 'trafficEdit':trafficForm(find(APP.data.traffic,id));break;
