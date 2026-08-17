@@ -763,7 +763,9 @@
       if(s==='like_desc')return (Number(b.like||0))-(Number(a.like||0));
       if(s==='fav_desc')return (Number(b.fav||0))-(Number(a.fav||0));
       if(s==='view_desc')return (Number(b.view||0))-(Number(a.view||0));
-      return String(b.date||'').localeCompare(String(a.date||''));
+      var da=String(a.date||'0000-00-00'),db=String(b.date||'0000-00-00');
+      if(da!==db)return db.localeCompare(da);
+      return String(b.id||'').localeCompare(String(a.id||''));
     });
     var sum={view:0,like:0,fav:0,comment:0,hot:0};
     all.forEach(function(p){var st=pubStats(p);if(!st.isPT)sum.view+=st.view;sum.like+=st.like;sum.fav+=st.fav;sum.comment+=st.comment;if(isHotPost(p))sum.hot++;});
@@ -1405,8 +1407,6 @@
 
   /* ---------- 事件绑定 ---------- */
   function bindView(){
-    document.getElementById('view').addEventListener('click',onViewClick);
-    document.getElementById('mask').addEventListener('click',onViewClick);
     var pr=document.getElementById('pubRange'),ps=document.getElementById('pubSort'),pa=document.getElementById('pubAcc');
     if(pr)pr.addEventListener('change',function(){APP.state.pubRange=this.value;var v=document.getElementById('view');v.innerHTML=viewContent();bindView();});
     if(ps)ps.addEventListener('change',function(){APP.state.pubSort=this.value;var v=document.getElementById('view');v.innerHTML=viewContent();bindView();});
@@ -1557,6 +1557,8 @@
     $('#ham').addEventListener('click',function(){$('#nav').classList.add('show');$('#scrim').classList.add('show');});
     $('#scrim').addEventListener('click',closeNav);
     $('#mask').addEventListener('click',function(e){if(e.target.id==='mask')closeModal();});
+    document.getElementById('view').addEventListener('click',onViewClick);
+    document.getElementById('mask').addEventListener('click',onViewClick);
     // 导入 + 月度/周/账号筛选 + 资料文件上传
     document.addEventListener('change',function(e){
       var t=e.target;if(!t)return;
