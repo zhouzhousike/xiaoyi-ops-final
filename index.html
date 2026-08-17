@@ -137,7 +137,7 @@
   .field input,.field select,.field textarea{width:100%;padding:10px 30px 10px 11px;border:1px solid var(--line);border-radius:10px;font-size:15px;font-family:inherit;background:#fff;color:var(--ink)}
   .field textarea{resize:vertical;min-height:64px}
   .grid2{display:grid;grid-template-columns:1fr 1fr;gap:0 12px}
-  .mini{padding:7px 28px 7px 10px;border:1px solid var(--line);border-radius:9px;font-size:13px;background:#fff;color:var(--ink);font-family:inherit}
+  .mini{padding:7px 30px 7px 11px;border:1px solid var(--line);border-radius:9px;font-size:13px;background:#fff url("data:image/svg+xml;utf8,<svg xmlns='http://www.w3.org/2000/svg' width='10' height='6'><path d='M0 0l5 6 5-6z' fill='%2397979C'/></svg>") no-repeat right 11px center;color:var(--ink);font-family:inherit;appearance:none;-webkit-appearance:none;cursor:pointer;transition:border-color .15s,box-shadow .15s}
   .mini:focus{outline:none;border-color:var(--brand);box-shadow:0 0 0 3px var(--brand-l)}
   .pub-summary{background:var(--brand-l);border:1px solid #E3E7F2;border-radius:10px;padding:9px 12px;font-size:12.5px;color:#3a4252;margin-bottom:12px}
   .pub-summary b{color:var(--brand-d)}
@@ -748,7 +748,7 @@
   function isThisMonth(d){if(!d)return false;var now=new Date(),t=parseDate(d);return t.getFullYear()===now.getFullYear()&&t.getMonth()===now.getMonth();}
   function isHotPost(p){return (Number(p.view||0)>=1000)||(Number(p.like||0)>=100);}
   function pubStats(p){var a=accById(p.account);var isPT=a&&a.type==='parttime';return {view:Number(p.view||0),like:Number(p.like||0),fav:Number(p.fav||0),comment:Number(p.comment||0),isPT:isPT};}
-  function opt(pairs,sel){return pairs.map(function(o){return '<option value="'+o[0]+'"'+(o[0]===sel?' selected':'')+'>'+o[1]+'</option>';}).join('');}
+  function optPairs(pairs,sel){return pairs.map(function(o){return '<option value="'+o[0]+'"'+(o[0]===sel?' selected':'')+'>'+o[1]+'</option>';}).join('');}
   function publishesView(){
     var all=APP.data.publishes.slice();
     all=all.filter(function(p){
@@ -774,8 +774,8 @@
     var rangeLabel=APP.state.pubRange==='week'?'本周':(APP.state.pubRange==='month'?'本月':'全部');
     return '<div class="row mb" style="gap:10px;flex-wrap:wrap;align-items:center">'+
       '<button class="btn" data-act="pubAdd">'+I.plus+'记录发布</button>'+
-      '<select id="pubRange" class="mini">'+opt([['all','全部时间'],['week','本周发布'],['month','本月发布']],APP.state.pubRange)+'</select>'+
-      '<select id="pubSort" class="mini">'+opt([['date_desc','发布时间（新→旧）'],['like_desc','点赞高→低'],['fav_desc','收藏高→低'],['view_desc','浏览高→低']],APP.state.pubSort)+'</select>'+
+      '<select id="pubRange" class="mini">'+optPairs([['all','全部时间'],['week','本周发布'],['month','本月发布']],APP.state.pubRange)+'</select>'+
+      '<select id="pubSort" class="mini">'+optPairs([['date_desc','发布时间（新→旧）'],['like_desc','点赞高→低'],['fav_desc','收藏高→低'],['view_desc','浏览高→低']],APP.state.pubSort)+'</select>'+
       '<select id="pubAcc" class="mini">'+accOpts+'</select>'+
       '<button class="btn ghost'+(APP.state.pubHot?' active':'')+'" data-act="pubHotToggle">🔥 只看爆款</button>'+
       '</div>'+
