@@ -1358,7 +1358,7 @@
       '<div class="row" style="justify-content:flex-end"><button class="btn ghost" data-x>取消</button><button class="btn" data-act="draftSave" data-id="'+(rec.id||'')+'">保存</button></div>');
   }
   function pubForm(rec){
-    rec=rec||{title:'',date:today(),account:APP.data.accounts[0].id,link:'',view:0,like:0,fav:0,comment:0,statTime:''};
+    rec=rec||{title:'',date:today(),account:APP.data.accounts[0].id,link:'',view:0,like:0,fav:0,comment:0,statTime:today()};
     var urls=extractUrls(rec.link), first=urls[0];
     openModal('<h3>'+(rec.id?'编辑发布':'记录发布')+'</h3>'+
       field('标题',inp('pb_title',rec.title))+
