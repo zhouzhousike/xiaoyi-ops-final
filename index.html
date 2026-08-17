@@ -265,8 +265,12 @@
   };
 
   /* ---------- 存储 ---------- */
+  function migrateAccounts(d){
+    if(!d||!d.accounts)return;
+    d.accounts.forEach(function(a){if(a.id==='acc_off'&&a.name==='宇天408计算机考研')a.name='小红书官号';});
+  }
   function load(){
-    try{var s=localStorage.getItem(KEY);if(s)return JSON.parse(s);}catch(e){}
+    try{var s=localStorage.getItem(KEY);if(s){var d=JSON.parse(s);migrateAccounts(d);return d;}}catch(e){}
     return seed();
   }
   function save(){localStorage.setItem(KEY,JSON.stringify(APP.data));}
@@ -319,7 +323,7 @@
     ];}
   function seed(){
     var accounts=[
-      {id:'acc_off',name:'宇天408计算机考研',type:'official',rate:3,holder:'小艺',owner:'小艺/蒋老师',active:true,persona:'官方主阵地',note:'官方号，引流分3倍，核心指标=加好友'},
+      {id:'acc_off',name:'小红书官号',type:'official',rate:3,holder:'小艺',owner:'小艺/蒋老师',active:true,persona:'官方主阵地',note:'官方号，引流分3倍，核心指标=加好友'},
       {id:'acc_hengbai',name:'恒白',type:'self',rate:1,holder:'小艺',owner:'小艺',active:true,persona:'413分·408单科130分高分学长',note:'自营号主力军，核心指标=进群'},
       {id:'acc_buling',name:'布灵布灵女王',type:'self',rate:1,holder:'小艺',owner:'小艺',active:false,persona:'自营号',note:'长期停更'},
       {id:'acc_linYu',name:'临屿',type:'self',rate:1,holder:'小艺',owner:'小艺',active:false,persona:'自营号',note:'暂无量身定位，未发'},
