@@ -58,6 +58,12 @@
   .stat .v{font-size:24px;font-weight:800;margin-top:4px;letter-spacing:.3px}
   .stat .x{font-size:12px;color:var(--muted);margin-top:2px}
   .stat.official{border-left:4px solid var(--official)} .stat.official .v{color:var(--official)}
+  /* 引流批量录入 */
+  .tr-grid{display:flex;flex-direction:column;gap:4px;margin-top:4px}
+  .tr-row{display:flex;align-items:center;gap:10px;padding:6px 2px;border-bottom:1px dashed var(--line)}
+  .tr-row:last-child{border-bottom:none}
+  .tr-row .tr-name{flex:1;font-size:13px}
+  .tr-row input[type=number]{width:120px;text-align:right}
   .stat.self{border-left:4px solid var(--self)} .stat.self .v{color:var(--self)}
   .stat.parttime{border-left:4px solid var(--parttime)} .stat.parttime .v{color:var(--parttime)}
   .stat.total{border-left:4px solid var(--brand)} .stat.total .v{color:var(--brand-d)}
@@ -709,6 +715,8 @@
 
   /* ---------- 引流数据 + 业绩 ---------- */
   function pad2(n){return (n<10?'0':'')+n;}
+  // 完整日期 -> 月.日（如 2026-08-05 -> 8.5），用于周期标签
+  function formatMD(iso){var p=String(iso||'').split('-');if(p.length<3)return iso;return (parseInt(p[1],10))+'.'+(parseInt(p[2],10));}
   function fmtDate(d){return d.getFullYear()+'-'+pad2(d.getMonth()+1)+'-'+pad2(d.getDate());}
   // 所有统计周期（按起始日排序），每周期跨账号引流合计
   function cycleList(){
@@ -1180,30 +1188,38 @@
 
   /* 引流表单（按阶段录入，不按某一天；官号填加好友，其余填进群） */
   function trafficForm(rec){
-    rec=rec||{cycle:'',accountId:'acc_off',join:'',addFriend:'',note:''};
-    // 账号下拉：仍在使用的账号排前，已停用账号置后并标注
-    var sortedAccs=APP.data.accounts.slice().sort(function(a,b){
-      if(a.active!==b.active)return a.active?-1:1;
-      return 0;
-    });
-    var accOpts=sortedAccs.map(function(a){
-      return '<option value="'+a.id+'"'+(a.id===rec.accountId?' selected':'')+'>'+esc(a.name)+'（'+typeLabel(a.type)+(a.active?'':'·已停')+'）</option>';
-    }).join('');
-    openModal('<h3>'+(rec.id?'编辑统计':'录入引流统计')+'</h3>'+
-      field('统计周期（填阶段即可，如 8.5-8.9）',inp('tr_cycle',rec.cycle))+
-      field('账号',sel('tr_acc',accOpts))+
-      '<div id="tr_offWrap">'+field('加好友人数（官号指标）',inp('tr_add',rec.addFriend))+'</div>'+
-      '<div id="tr_joinWrap">'+field('进群人数（自营/兼职指标）',inp('tr_join',rec.join))+'</div>'+
-      '<div class="muted small mb" id="tr_meta"></div>'+
-      field('备注',inp('tr_note',rec.note))+
-      '<div class="row" style="justify-content:flex-end"><button class="btn ghost" data-x>取消</button><button class="btn" data-act="trafficSave" data-id="'+(rec.id||'')+'">保存</button></div>');
-    function syncTr(){
-      var a=accById($('#tr_acc').value);var off=a&&a.type==='official';
-      $('#tr_offWrap').style.display=off?'':'none';
-      $('#tr_joinWrap').style.display=off?'none':'';
-      $('#tr_meta').textContent=a?('持有者：'+(a.holder||'-')+'　·　负责人：'+(a.owner||'-')):'';
+    rec=rec||null;
+    // 解析已有记录的起止日期（兼容旧数据 "8.5" 与完整日期）
+    var startISO='', endISO='', note='';
+    if(rec&&rec.cstart){
+      startISO=String(rec.cstart);
+      if(/^\d{1,2}\.\d{1,2}$/.test(startISO)){startISO='2026-'+pad2(+startISO.split('.')[0])+'-'+pad2(+startISO.split('.')[1]);}
+      var cyc=String(rec.cycle||'');
+      var ms=cyc.match(/(\d{1,2})\.(\d{1,2})/g);
+      if(ms&&ms[1]){endISO='2026-'+pad2(+ms[1].split('.')[0])+'-'+pad2(+ms[1].split('.')[1]);}
+      note=rec.note||'';
     }
-    $('#tr_acc').addEventListener('change',syncTr);syncTr();
+    // 账号列表：活跃排前，停用置后并标注
+    var sortedAccs=APP.data.accounts.slice().sort(function(a,b){if(a.active!==b.active)return a.active?-1:1;return 0;});
+    // 编辑时预填该账号数值
+    var prefill={};
+    if(rec){var pa=accById(rec.accountId);prefill[rec.accountId]=(pa&&pa.type==='official')?rec.addFriend:rec.join;}
+    var rows=sortedAccs.map(function(a){
+      var off=a.type==='official';
+      var val=prefill[a.id]!=null?prefill[a.id]:'';
+      return '<div class="tr-row"><span class="tr-name">'+esc(a.name)+' <i class="muted small">'+typeLabel(a.type)+(a.active?'':'·已停')+'</i></span>'+
+        '<input id="tr_num_'+a.id+'" type="number" min="0" value="'+esc(val)+'" placeholder="0">'+
+        '<span class="muted small">'+(off?'加好友':'进群')+'</span></div>';
+    }).join('');
+    openModal('<h3>'+(rec&&rec.id?'编辑统计':'录入一周引流')+'</h3>'+
+      field('起始日期','<input type="date" id="tr_start" value="'+esc(startISO)+'">')+
+      field('结束日期','<input type="date" id="tr_end" value="'+esc(endISO)+'">')+
+      '<div class="muted small mb" id="tr_cyclePrev"></div>'+
+      field('各账号引流数（填数字即可，留空不录）','<div class="tr-grid">'+rows+'</div>')+
+      field('备注',inp('tr_note',note))+
+      '<div class="row" style="justify-content:flex-end"><button class="btn ghost" data-x>取消</button><button class="btn" data-act="trafficSave" data-id="'+(rec&&rec.id||'')+'">保存</button></div>');
+    function syncPrev(){var s=$('#tr_start').value,e=$('#tr_end').value,t='';if(s){var md=formatMD(s);var md2=(e&&e!==s)?formatMD(e):'';t='周期标签：'+md+(md2?(' - '+md2):'');}$('#tr_cyclePrev').textContent=t;}
+    $('#tr_start').addEventListener('change',syncPrev);$('#tr_end').addEventListener('change',syncPrev);syncPrev();
   }
   function periodForm(){
     var pid=(APP.state.tfMonth!=='all')?monthKeyToPid(APP.state.tfMonth):APP.data.meta.currentPeriod;
@@ -1333,13 +1349,30 @@
       case 'trafficEdit':trafficForm(find(APP.data.traffic,id));break;
       case 'trafficDel':if(confirm('确认删除该条统计？')){APP.data.traffic=APP.data.traffic.filter(function(x){return x.id!==id;});save();render();toast('已删除');}break;
       case 'trafficSave':{
-        var r=id?find(APP.data.traffic,id):{id:uid()};
-        r.cycle=$('#tr_cycle').value;r.cstart=cycleStart(r.cycle);r.accountId=$('#tr_acc').value;
-        var _a=accById(r.accountId);var _off=_a&&_a.type==='official';
-        if(_off){r.addFriend=Number($('#tr_add').value)||0;r.join=0;}
-        else {r.join=Number($('#tr_join').value)||0;r.addFriend=0;}
-        r.note=$('#tr_note').value;
-        if(!id)APP.data.traffic.unshift(r);save();closeModal();render();toast('已保存');break;}
+        var startISO=$('#tr_start').value, endISO=$('#tr_end').value||$('#tr_start').value;
+        if(!startISO){toast('请选择起始日期');break;}
+        var cycle=formatMD(startISO)+(endISO&&endISO!==startISO?(' - '+formatMD(endISO)):'');
+        var cstart=startISO, pid=pidOf(cstart), note=$('#tr_note').value;
+        // 编辑单条：直接更新该账号记录
+        if(id){
+          var r=find(APP.data.traffic,id);
+          if(r){var ra=accById(r.accountId),off=ra&&ra.type==='official';var v=Number($('#tr_num_'+r.accountId).value)||0;
+            if(off){r.addFriend=v;r.join=0;}else{r.join=v;r.addFriend=0;}
+            r.cycle=cycle;r.cstart=cstart;r.periodId=pid;r.note=note;}
+          save();closeModal();render();toast('已保存');break;
+        }
+        // 新增：按账号批量写入，仅处理填了数字的账号（同账号同周期自动更新，不重复）
+        var n=0;
+        APP.data.accounts.forEach(function(a){
+          var el=$('#tr_num_'+a.id);if(!el)return;var v=Number(el.value)||0;if(v<=0)return;
+          var off=a.type==='official';
+          var ex=APP.data.traffic.filter(function(r){return r.accountId===a.id&&r.cycle===cycle;})[0];
+          if(ex){if(off){ex.addFriend=v;ex.join=0;}else{ex.join=v;ex.addFriend=0;}ex.cstart=cstart;ex.periodId=pid;ex.note=note;}
+          else APP.data.traffic.unshift({id:uid(),periodId:pid,cycle:cycle,cstart:cstart,accountId:a.id,join:off?0:v,addFriend:off?v:0,note:note});
+          n++;
+        });
+        if(!n){toast('请至少填写一个账号数字');break;}
+        save();closeModal();render();toast('已保存 '+n+' 条');break;}
       case 'periodEdit':periodForm();break;
       case 'periodSave':{var p=APP.data.periods.filter(function(x){return x.id===id;})[0];
         if(p){p.start=$('#pe_start').value;p.end=$('#pe_end').value;save();closeModal();render();toast('月度边界已更新');}break;}
