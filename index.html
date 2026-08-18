@@ -538,7 +538,7 @@
     {key:'accounts',label:'账号管理',icon:I.acc},
     {key:'backup',label:'数据备份',icon:I.backup}
   ];
-  APP.state={view:'dashboard',sub:'topics',topicAudience:'27',topicStage:'全部',heatRange:'week',trafficTab:'table',matType:'全部',tfPeriod:'',tfMonth:'all',tfAcc:'all',privYear:'all',privConsult:'all',accTypeFilter:'all',pubRange:'all',pubSort:'date_desc',pubHot:false};
+  APP.state={view:'dashboard',sub:'topics',topicAudience:'27',topicStage:'全部',heatRange:'week',trafficTab:'table',matType:'全部',tfPeriod:'',tfMonth:'all',tfAcc:'all',privYear:'all',privConsult:'all',accTypeFilter:'all',pubRange:'all',pubSort:'date_desc',pubHot:false,pubHighView:false};
 
   function renderNav(){
     var m=$('#menu'); m.innerHTML=NAV.map(function(n){
@@ -738,7 +738,8 @@
       }).join('')+'</div>';
   }
   function parseDate(s){var p=String(s||'').split('-');return new Date(Number(p[0]),Number(p[1])-1,Number(p[2]||1));}
-  function isHotPost(p){return (Number(p.view||0)>=1000)||(Number(p.like||0)>=50)||(Number(p.fav||0)>=50)||(Number(p.comment||0)>=50);}
+  function isHotPost(p){return (Number(p.like||0)>=50)||(Number(p.fav||0)>=50)||(Number(p.comment||0)>=50);}
+  function isHighViewPost(p){return (Number(p.view||0)>=1000)&&(Number(p.like||0)<50)&&(Number(p.fav||0)<50)&&(Number(p.comment||0)<50);}
   function ymOf(s){var p=String(s||'').split('-');if(p.length<2)return '';var y=p[0],m=p[1];if(!/^\d+$/.test(y)||!/^\d+$/.test(m))return '';return y+'-'+('0'+Number(m)).slice(-2);}
   function pubStats(p){var a=accById(p.account);var isPT=a&&a.type==='parttime';return {view:Number(p.view||0),like:Number(p.like||0),fav:Number(p.fav||0),comment:Number(p.comment||0),isPT:isPT};}
   function optPairs(pairs,sel){return pairs.map(function(o){return '<option value="'+o[0]+'"'+(o[0]===sel?' selected':'')+'>'+o[1]+'</option>';}).join('');}
@@ -751,6 +752,7 @@
     all=all.filter(function(p){
       if(APP.state.pubRange!=='all'&&ymOf(p.date)!==APP.state.pubRange)return false;
       if(APP.state.pubHot&&!isHotPost(p))return false;
+      if(APP.state.pubHighView&&!isHighViewPost(p))return false;
       return true;
     });
     var s=APP.state.pubSort;
@@ -762,8 +764,8 @@
       if(ta!==tb)return tb-ta;
       return String(b.id||'').localeCompare(String(a.id||''));
     });
-    var sum={view:0,like:0,fav:0,comment:0,hot:0};
-    all.forEach(function(p){var st=pubStats(p);if(!st.isPT)sum.view+=st.view;sum.like+=st.like;sum.fav+=st.fav;sum.comment+=st.comment;if(isHotPost(p))sum.hot++;});
+    var sum={view:0,like:0,fav:0,comment:0,hot:0,highview:0};
+    all.forEach(function(p){var st=pubStats(p);if(!st.isPT)sum.view+=st.view;sum.like+=st.like;sum.fav+=st.fav;sum.comment+=st.comment;if(isHotPost(p))sum.hot++;if(isHighViewPost(p))sum.highview++;});
     if(!APP.data.publishes.length)return '<div class="row mb"><button class="btn" data-act="pubAdd">'+I.plus+'记录发布</button></div><div class="empty">还没有发布记录</div>';
     var monthOpts='<option value="all">全部时间</option>'+monthList.map(function(m){return '<option value="'+m+'"'+(APP.state.pubRange===m?' selected':'')+'>'+m.replace('-','年')+'月</option>';}).join('');
     var rangeLabel=APP.state.pubRange==='all'?'全部':(APP.state.pubRange.replace('-','年')+'月');
@@ -772,16 +774,18 @@
       '<select id="pubRange" class="mini">'+monthOpts+'</select>'+
       '<select id="pubSort" class="mini">'+optPairs([['date_desc','发布时间（新→旧）'],['like_desc','点赞高→低'],['fav_desc','收藏高→低'],['view_desc','浏览高→低']],APP.state.pubSort)+'</select>'+
       '<button class="btn ghost'+(APP.state.pubHot?' active':'')+'" data-act="pubHotToggle">🔥 只看爆款</button>'+
+      '<button class="btn ghost'+(APP.state.pubHighView?' active':'')+'" data-act="pubHighViewToggle">📈 只看高浏览</button>'+
       '</div>'+
-      '<div class="pub-summary">当前'+rangeLabel+'共 <b>'+all.length+'</b> 篇 · 总浏览 <b>'+formatCount(sum.view)+'</b> · 总点赞 <b>'+formatCount(sum.like)+'</b> · 总收藏 <b>'+formatCount(sum.fav)+'</b> · 总评论 <b>'+formatCount(sum.comment)+'</b> · 爆款 <b>'+sum.hot+'</b> 篇</div>'+
+      '<div class="pub-summary">当前'+rangeLabel+'共 <b>'+all.length+'</b> 篇 · 总浏览 <b>'+formatCount(sum.view)+'</b> · 总点赞 <b>'+formatCount(sum.like)+'</b> · 总收藏 <b>'+formatCount(sum.fav)+'</b> · 总评论 <b>'+formatCount(sum.comment)+'</b> · 爆款 <b>'+sum.hot+'</b> 篇 · 高浏览 <b>'+sum.highview+'</b> 篇</div>'+
       '<div class="list">'+all.map(function(p){
         var st=pubStats(p);
         var urls=extractUrls(p.link), first=urls[0];
         var linkPart='';
         if(p.link){linkPart=first?' · <a href="'+esc(first)+'" target="_blank">笔记</a>':' · <span class="muted">未识别到链接</span>';linkPart+=' · <button class="btn sm ghost" data-act="copyLink" data-text="'+esc(p.link)+'">复制文案</button>';}
         var hot=isHotPost(p)?' <span class="tag red">🔥爆款</span>':'';
+        var hv=isHighViewPost(p)?' <span class="tag blue">📈高浏览</span>':'';
         var viewCell=st.isPT?'<span class="muted">兼职号不统计</span>':'<b>'+formatCount(st.view)+'</b>';
-        return '<div class="li"><div class="body"><div class="t">'+esc(p.title)+hot+'</div>'+
+        return '<div class="li"><div class="body"><div class="t">'+esc(p.title)+hot+hv+'</div>'+
           '<div class="m">'+esc(p.date)+' · '+esc(accName(p.account))+linkPart+'</div>'+
           '<div class="m stats">浏览 '+viewCell+' · 点赞 <b>'+formatCount(st.like)+'</b> · 收藏 <b>'+formatCount(st.fav)+'</b> · 评论 <b>'+formatCount(st.comment)+'</b>'+(p.statTime?' · 统计于 '+esc(p.statTime):'')+'</div></div>'+
           '<div class="acts"><button class="btn sm ghost" data-act="pubEdit" data-id="'+p.id+'">'+I.edit+'</button>'+
@@ -1447,6 +1451,7 @@
       case 'pubDel':if(confirm('确认删除？')){APP.data.publishes=APP.data.publishes.filter(function(x){return x.id!==id;});save();render();toast('已删除');}break;
       case 'copyLink':copyText(el.getAttribute('data-text'));break;
       case 'pubHotToggle':APP.state.pubHot=!APP.state.pubHot;var vh=$('#view');if(vh){vh.innerHTML=viewContent();bindView();}break;
+      case 'pubHighViewToggle':APP.state.pubHighView=!APP.state.pubHighView;var vh2=$('#view');if(vh2){vh2.innerHTML=viewContent();bindView();}break;
       case 'pubSave':{
         var p=id?find(APP.data.publishes,id):{id:uid()};
         p.title=$('#pb_title').value;p.date=$('#pb_date').value;p.account=$('#pb_acc').value;p.link=$('#pb_link').value;
