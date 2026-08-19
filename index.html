@@ -214,7 +214,7 @@
 <body>
 <div class="app">
   <aside class="nav" id="nav">
-    <div class="logo">宇天408<small>运营工作台 · 小艺</small></div>
+    <div class="logo">宇天408<small id="brandSub"></small></div>
     <div class="menu" id="menu"></div>
     <div class="foot">单文件 · 本地存储<br>数据自动存浏览器<br>不展示报班转化率</div>
   </aside>
@@ -241,7 +241,8 @@
 <script>
 (function(){
   "use strict";
-  var KEY = "wb_yutian_ops_v1";
+  var IS_GUEST = /[?&](guest|demo|blank)\b/i.test(location.search || '');
+  var KEY = IS_GUEST ? "wb_yutian_ops_guest_v1" : "wb_yutian_ops_v1";
   var APP = {};
 
   /* ---------- 图标 ---------- */
@@ -345,6 +346,16 @@
       {id:uid(),name:'27 52群',member:200,owner:'宇天希哥',addFriend:72,convertOwner:'宇天希哥',cat:'27考研'}
     ];}
   function seed(){
+    if(IS_GUEST){
+      // 给别人用的空白工作台：无任何业务数据，仅保留一个可改的占位官方号，避免表单报错
+      return {
+        meta:{currentPeriod:'p_0805',examDate:'2026-12-26',examName:'27考研'},
+        accounts:[{id:'acc_off',name:'官方号',type:'official',rate:1,holder:'',owner:'',active:true,persona:'',note:''}],
+        periods:[{id:'p_0805',start:'2026-08-05',end:'2026-09-05',note:'当前周期'}],
+        traffic:[], groups:[], materials:[], topics:[], drafts:[], publishes:[], reviews:[], qa:[], files:[],
+        topicAuto:{last:'',idx:0}
+      };
+    }
     var accounts=[
       {id:'acc_off',name:'小红书官号',type:'official',rate:3,holder:'小艺',owner:'小艺/蒋老师',active:true,persona:'官方主阵地',note:'官方号，引流分3倍，核心指标=加好友'},
       {id:'acc_hengbai',name:'恒白',type:'self',rate:1,holder:'小艺',owner:'小艺',active:true,persona:'413分·408单科130分高分学长',note:'自营号主力军，核心指标=进群'},
@@ -1701,8 +1712,11 @@
   /* ---------- 初始化 ---------- */
   function init(){
     APP.data=load();
-    // 选题库每周自动补充（打开即检查：距上次≥7天则从储备池放出3条）
-    try{var _rel=topicAutoRelease(false);if(_rel.added>0&&$('#toast'))toast('本周已自动补充 '+_rel.added+' 条选题');}catch(e){}
+    // 品牌副标题：guest 模式去掉"小艺"，自己链接保持不变
+    var bs=document.getElementById('brandSub');
+    if(bs)bs.textContent=IS_GUEST?'运营工作台':'运营工作台 · 小艺';
+    // 选题库每周自动补充（打开即检查：距上次≥7天则从储备池放出3条）；guest 模式不放题，保持空白
+    if(!IS_GUEST){ try{var _rel=topicAutoRelease(false);if(_rel.added>0&&$('#toast'))toast('本周已自动补充 '+_rel.added+' 条选题');}catch(e){} }
 
     // 绑定导航
     $('#menu').addEventListener('click',function(e){var n=e.target.closest('[data-nav]');if(n)navigate(n.getAttribute('data-nav'));});
