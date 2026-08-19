@@ -269,6 +269,7 @@
   function migrateAccounts(d){
     if(!d||!d.accounts)return;
     d.accounts.forEach(function(a){if(a.id==='acc_off'&&a.name==='宇天408计算机考研')a.name='小红书官号';});
+    if(!d.topicAuto)d.topicAuto={last:'',idx:0};
   }
   function load(){
     try{var s=localStorage.getItem(KEY);if(s){var d=JSON.parse(s);migrateAccounts(d);return d;}}catch(e){}
@@ -431,10 +432,71 @@
       meta:{currentPeriod:'p_0805',examDate:'2026-12-26',examName:'27考研'},
       accounts:accounts, periods:periods, traffic:traffic, groups:groups, materials:materials,
       topics:topics,
-      drafts:[], publishes:[], reviews:[], qa:[], files:[]
+      drafts:[], publishes:[], reviews:[], qa:[], files:[],
+      topicAuto:{last:'',idx:0}
     };
   }
   function t(){return null;}
+  // 选题储备池：每周自动放出若干条到选题库（字段同 topic 数据模型，forAccount 默认为通用）
+  var TOPIC_POOL=[
+    {title:'408四科时间分配：强化末期每天怎么切',angle:'给四科抢时间的可执行切片',subject:'通用',stage:'强化末期',pain:'四科抢时间',audience:'27'},
+    {title:'线性表：顺序表vs链表，什么时候用哪个',angle:'按场景给决策表',subject:'408',stage:'强化末期',pain:'选型懵',audience:'27'},
+    {title:'栈和队列：用栈实现递归与表达式求值套路',angle:'手推步骤模板',subject:'408',stage:'强化末期',pain:'递归转栈乱',audience:'27'},
+    {title:'二叉树遍历全解：前中后序+层序手推',angle:'画树一步一步推',subject:'408',stage:'强化末期',pain:'遍历老错',audience:'27'},
+    {title:'平衡二叉树AVL：四种旋转一张图',angle:'LL/LR/RL/RR对比',subject:'408',stage:'强化末期',pain:'旋转分不清',audience:'27'},
+    {title:'图最短路径：Dijkstra vs Floyd 区别与手算',angle:'适用场景+手算流程',subject:'408',stage:'强化末期',pain:'两算法混',audience:'27'},
+    {title:'最小生成树：Prim vs Kruskal 怎么选',angle:'稠密/稀疏图决策',subject:'408',stage:'强化末期',pain:'选错算法',audience:'27'},
+    {title:'十大排序算法：时间复杂度+稳定性对比表',angle:'一张表背下来',subject:'408',stage:'强化末期',pain:'复杂度记混',audience:'27'},
+    {title:'快速排序手推全过程（408常考）',angle:'partition 每步画',subject:'408',stage:'真题冲刺',pain:'手推卡壳',audience:'27'},
+    {title:'散列表：冲突处理+装填因子计算',angle:'开放定址/拉链法对比',subject:'408',stage:'强化末期',pain:'装填因子算错',audience:'27'},
+    {title:'堆排序与优先队列',angle:'建堆+调堆步骤',subject:'408',stage:'强化末期',pain:'堆乱',audience:'27'},
+    {title:'KMP next数组手算三步法',angle:'前缀函数速算',subject:'408',stage:'强化末期',pain:'next算不出',audience:'27'},
+    {title:'B树与B+树：插入分裂怎么画',angle:'阶m的分裂条件',subject:'408',stage:'真题冲刺',pain:'分裂错',audience:'27'},
+    {title:'计组：原反补移码，为什么用补码',angle:'减法变加法原理',subject:'408',stage:'强化末期',pain:'补码不懂',audience:'27'},
+    {title:'浮点数IEEE754：阶码尾数怎么排',angle:'规格化步骤',subject:'408',stage:'强化末期',pain:'位数排错',audience:'27'},
+    {title:'Cache映射：直接/全相联/组相联对比',angle:'三种映射一张表',subject:'408',stage:'强化末期',pain:'映射混淆',audience:'27'},
+    {title:'Cache命中率计算题套路',angle:'命中/缺失公式套用',subject:'408',stage:'真题冲刺',pain:'命中率算错',audience:'27'},
+    {title:'指令流水线：吞吐率/加速比/瓶颈段',angle:'时空图画法',subject:'408',stage:'真题冲刺',pain:'吞吐率错',audience:'27'},
+    {title:'CISC vs RISC 核心区别',angle:'指令/周期/寻址对比',subject:'408',stage:'强化末期',pain:'区别记不住',audience:'27'},
+    {title:'CPU数据通路：单总线vs多总线',angle:'数据流向画一遍',subject:'408',stage:'强化末期',pain:'通路懵',audience:'27'},
+    {title:'存储器层次：SRAM/DRAM/ROM怎么记',angle:'速度/volatile对比',subject:'408',stage:'强化末期',pain:'记混',audience:'27'},
+    {title:'中断与异常的处理流程',angle:'现场保护到返回',subject:'408',stage:'强化末期',pain:'流程乱',audience:'27'},
+    {title:'I/O方式：程序查询/中断/DMA对比',angle:'CPU干预程度排序',subject:'408',stage:'强化末期',pain:'三种混',audience:'27'},
+    {title:'OS：进程vs线程到底差在哪',angle:'资源/调度对比',subject:'408',stage:'强化末期',pain:'概念混',audience:'27'},
+    {title:'信号量P/V操作：生产者消费者经典题',angle:'PV套用模板',subject:'408',stage:'真题冲刺',pain:'PV写错',audience:'27'},
+    {title:'死锁：四必要条件+银行家算法',angle:'安全序列手算',subject:'408',stage:'真题冲刺',pain:'银行家不会',audience:'27'},
+    {title:'内存管理：分页vs分段',angle:'地址结构对比',subject:'408',stage:'强化末期',pain:'两概念混',audience:'27'},
+    {title:'页面置换算法：LRU/FIFO/OPT手算',angle:'缺页次数怎么数',subject:'408',stage:'真题冲刺',pain:'缺页算错',audience:'27'},
+    {title:'虚拟内存：局部性原理怎么考',angle:'时间/空间局部性举例',subject:'408',stage:'强化末期',pain:'原理空',audience:'27'},
+    {title:'磁盘调度：FCFS/SSTF/SCAN',angle:'寻道时间计算',subject:'408',stage:'强化末期',pain:'调度选错',audience:'27'},
+    {title:'计网：OSI vs TCP/IP模型每层干啥',angle:'逐层功能口诀',subject:'408',stage:'强化末期',pain:'层记混',audience:'27'},
+    {title:'TCP三次握手四次挥手',angle:'状态迁移图',subject:'408',stage:'真题冲刺',pain:'挥手记错',audience:'27'},
+    {title:'TCP可靠传输：滑动窗口与拥塞控制',angle:'慢开始/拥塞避免',subject:'408',stage:'真题冲刺',pain:'控制混',audience:'27'},
+    {title:'UDP vs TCP 区别一张表',angle:'面向连接/可靠对比',subject:'408',stage:'强化末期',pain:'区别空',audience:'27'},
+    {title:'子网划分CIDR：怎么算网络号',angle:'掩码与块大小',subject:'408',stage:'真题冲刺',pain:'子网不会',audience:'27'},
+    {title:'HTTP vs HTTPS 区别',angle:'加密/证书一句话',subject:'408',stage:'强化末期',pain:'区别浅',audience:'27'},
+    {title:'ARP/DHCP/DNS 三协议串讲',angle:'各自解决啥问题',subject:'408',stage:'强化末期',pain:'协议混',audience:'27'},
+    {title:'408代码题：PV操作拿满分模板',angle:'审题→变量→PV顺序',subject:'408',stage:'真题冲刺',pain:'代码题不敢写',audience:'27'},
+    {title:'408真题大题答题模板',angle:'步骤分怎么拿',subject:'通用',stage:'真题冲刺',pain:'大题没章法',audience:'27'},
+    {title:'王道 vs 教材怎么搭配不浪费',angle:'主线+查漏用法',subject:'通用',stage:'强化末期',pain:'资料堆砌',audience:'27'},
+    {title:'强化末期避坑：这5件事别做',angle:'反向清单降焦虑',subject:'通用',stage:'强化末期',pain:'信息过载',audience:'27'},
+    {title:'错题复盘法：每周日重做不重看',angle:'可落地复盘表',subject:'通用',stage:'强化末期',pain:'错题只标不看',audience:'27'},
+    {title:'最后30天：查漏补缺回归定义与公式',angle:'冲刺期回归本源',subject:'通用',stage:'冲刺',pain:'冲刺不知抓啥',audience:'27'},
+    {title:'二战408：和一战复习最大的不同',angle:'重心从听转到练',subject:'通用',stage:'强化末期',pain:'二战路径模糊',audience:'27'},
+    {title:'408 130+ 上岸学长踩坑总结',angle:'真实踩坑清单',subject:'通用',stage:'强化末期',pain:'怕走弯路',audience:'27'},
+    {title:'计组"书课不匹配"怎么破',angle:'以题为锚补概念',subject:'408',stage:'强化末期',pain:'书课对不上',audience:'27'},
+    {title:'9月408复习安排表',angle:'月度节奏表',subject:'通用',stage:'强化末期',pain:'月度无计划',audience:'27'},
+    {title:'11月408冲刺安排表',angle:'模考+复盘节奏',subject:'通用',stage:'冲刺',pain:'冲刺无节奏',audience:'27'},
+    {title:'28考研启航：4科时间线总览',angle:'基础阶段每天干啥',subject:'通用',stage:'基础起步',pain:'不知从哪开始',audience:'28'},
+    {title:'数据结构第一轮30-35天规划',angle:'照时间线可执行',subject:'408',stage:'基础起步',pain:'一轮无计划',audience:'28'},
+    {title:'计组一轮先建框架再填细节',angle:'把计组当建筑搭',subject:'408',stage:'基础起步',pain:'计组空中楼阁',audience:'28'},
+    {title:'OS一轮：进程/内存/文件三块怎么串',angle:'一张图串起OS',subject:'408',stage:'基础起步',pain:'OS概念散',audience:'28'},
+    {title:'计网背了就忘？思维导图法',angle:'记忆策略',subject:'408',stage:'基础起步',pain:'计网记不住',audience:'28'},
+    {title:'数学基础：高数→线代→概率时间分配',angle:'按科目给时间线',subject:'数学',stage:'基础起步',pain:'数学无节奏',audience:'28'},
+    {title:'基础阶段刷题＞听课',angle:'纠偏输入>输出',subject:'数学',stage:'基础起步',pain:'只听课不练',audience:'28'},
+    {title:'单词从今天开始：核心词一轮',angle:'记忆曲线+每日新词',subject:'英语',stage:'基础起步',pain:'单词背完就忘',audience:'28'},
+    {title:'政治要不要现在开始：低成本路线',angle:'政治规划',subject:'政治',stage:'基础起步',pain:'政治不知何时启动',audience:'28'}
+  ];
 
   /* ---------- 业绩考核积分引擎 ---------- */
   function accById(id){var a=APP.data.accounts;for(var i=0;i<a.length;i++)if(a[i].id===id)return a[i];return null;}
@@ -691,6 +753,23 @@
     var auds=[['27','27考研'],['28','28考研'],['全部','全部']];
     return auds.map(function(a){return '<button class="btn sm ghost'+(APP.state.topicAudience===a[0]?' active':'')+'" data-audience="'+a[0]+'">'+a[1]+'</button>';}).join(' ');
   }
+  // 选题库每周自动补充：从 TOPIC_POOL 按顺序放出若干条（默认每周3条），按最近一次自动补充时间控制节奏
+  function topicAutoRelease(force){
+    if(!APP.data.topicAuto)APP.data.topicAuto={last:'',idx:0};
+    var ta=APP.data.topicAuto, pool=TOPIC_POOL, N=3;
+    if(ta.idx>=pool.length)return {added:0,total:pool.length,remain:0,done:true};
+    var due=force||!ta.last||(daysBetween(ta.last,today())>=7);
+    if(!due)return {added:0,total:pool.length,remain:pool.length-ta.idx,done:false};
+    var added=0;
+    while(added<N&&ta.idx<pool.length){
+      var s=pool[ta.idx++];
+      APP.data.topics.unshift({id:uid(),title:s.title,angle:s.angle,subject:s.subject,stage:s.stage,pain:s.pain,forAccount:'',status:'idea',audience:s.audience||'27',note:'（每周自动补充）',createdAt:today()});
+      added++;
+    }
+    ta.last=today();
+    save();
+    return {added:added,total:pool.length,remain:pool.length-ta.idx,done:ta.idx>=pool.length};
+  }
   function topicsView(){
     var list=APP.data.topics;
     if(APP.state.topicAudience!=='全部'){
@@ -701,6 +780,10 @@
     }
     var c27=APP.data.topics.filter(function(t){return (t.audience||'27')==='27';}).length;
     var c28=APP.data.topics.filter(function(t){return (t.audience||'27')==='28';}).length;
+    var ta=APP.data.topicAuto||{last:'',idx:0};
+    var remain=Math.max(0,TOPIC_POOL.length-(ta.idx||0));
+    var lastTxt=ta.last?ta.last:'尚未';
+    var nextTxt=ta.last?fmtDate(new Date(parseDate(ta.last).getTime()+7*86400000)):'（首次打开即补充）';
     var cards='<div class="grid g2">'+list.map(function(t){
       var a=accById(t.forAccount);
       var aud=(t.audience||'27');
@@ -721,7 +804,8 @@
         '</div></div>';
     }).join('')+'</div>';
     return '<div class="row mb"><button class="btn" data-act="topicAdd">'+I.plus+'新增选题</button>'+
-      '<span class="muted small">已预置 '+APP.data.topics.length+' 条选题（27考研 '+c27+' / 28考研 '+c28+'），可直接挑选/推进</span></div>'+
+      '<button class="btn ghost" data-act="topicAutoNow">立即补充选题</button>'+
+      '<span class="muted small">已预置 '+APP.data.topics.length+' 条（27 '+c27+'/28 '+c28+'）· 选题池剩余 '+remain+' 条 · 上次自动补充 '+lastTxt+' · 下次约 '+nextTxt+'</span></div>'+
       '<div class="row mb">'+audienceFilter()+'</div>'+
       '<div class="row mb">'+stageFilter()+'</div>'+cards;
   }
@@ -1474,6 +1558,7 @@
   function handleAct(act,id,el){
     switch(act){
       case 'topicAdd':topicForm();break;
+      case 'topicAutoNow':{var r=topicAutoRelease(true);toast(r.added>0?('已补充 '+r.added+' 条选题'):(r.done?'选题池已用完':'暂未到更新时间'));var vx=$('#view');if(vx){vx.innerHTML=viewContent();bindView();}break;}
       case 'topicEdit':topicForm(find(APP.data.topics,id));break;
       case 'topicDel':if(confirm('确认删除该选题？')){APP.data.topics=APP.data.topics.filter(function(x){return x.id!==id;});save();render();toast('已删除');}break;
       case 'topicStatus':{var t=find(APP.data.topics,id);var order=['idea','writing','review','published'];var i=order.indexOf(t.status);var nx=order[(i+1)%4];t.status=nx;save();render();toast('状态→'+statusText(nx));}break;
@@ -1621,6 +1706,9 @@
   /* ---------- 初始化 ---------- */
   function init(){
     APP.data=load();
+    // 选题库每周自动补充（打开即检查：距上次≥7天则从储备池放出3条）
+    try{var _rel=topicAutoRelease(false);if(_rel.added>0&&$('#toast'))toast('本周已自动补充 '+_rel.added+' 条选题');}catch(e){}
+
     // 绑定导航
     $('#menu').addEventListener('click',function(e){var n=e.target.closest('[data-nav]');if(n)navigate(n.getAttribute('data-nav'));});
     $('#bottombar').addEventListener('click',function(e){var n=e.target.closest('[data-nav]');if(n)navigate(n.getAttribute('data-nav'));});
