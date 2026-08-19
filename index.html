@@ -38,6 +38,12 @@
   body.guest .pub-summary b{color:#5E6462}
   body.guest th{background:#F6F7F4}
   body.guest tr:hover td{background:#F0F1EE}
+  body.guest .heat .cell{background:#F6F7F4;color:#4A4F4D}
+  body.guest .heat .h0{background:#F6F7F4}
+  body.guest .heat .h1{background:#E4DED4}
+  body.guest .heat .h2{background:#B7ADA2;color:#4A4F4D}
+  body.guest .heat .h3{background:#7A857C;color:#fff}
+  body.guest .heat .h4{background:#5E6462;color:#fff}
   *{box-sizing:border-box;-webkit-tap-highlight-color:transparent}
   html,body{margin:0;padding:0}
   body{font-family:-apple-system,BlinkMacSystemFont,"Segoe UI",Roboto,"PingFang SC","Microsoft YaHei",sans-serif;
@@ -270,6 +276,14 @@
   var KEY = IS_GUEST ? "wb_yutian_ops_guest_v1" : "wb_yutian_ops_v1";
   var GUEST_DATA_VERSION = 2;
   document.body.className = IS_GUEST ? 'guest' : '';
+  // 图表配色：主链接用原蓝灰系；guest 用图片5色系（背景浅 FROST/LINEN/ASH，重点深 PINE/IRON）
+  var CH = IS_GUEST ? {
+    off:'#5E6462', self:'#7A857C', pt:'#B7ADA2',
+    grid:'#E4DED4', axis:'#7A857C', txt:'#5E6462'
+  } : {
+    off:'#B6C2CF', self:'#97979C', pt:'#8C99A8',
+    grid:'#EEF0ED', axis:'#97979C', txt:'#56565B'
+  };
   var APP = {};
 
   /* ---------- 图标 ---------- */
@@ -856,10 +870,10 @@
     // 趋势（按统计周期，各号引流）
     var weeks=Object.keys(cyclesDone).sort(function(a,b){return cycleStart(a)<cycleStart(b)?-1:1;});
     var trend=lineChart(weeks,[
-      {name:'官方号',color:'#B6C2CF',vals:weeks.map(function(w){return sumCycle(pid,w,'official');})},
-      {name:'自营号',color:'#97979C',vals:weeks.map(function(w){return sumCycle(pid,w,'self');})},
-      {name:'兼职号',color:'#8C99A8',vals:weeks.map(function(w){return sumCycle(pid,w,'parttime');})}    ]);
-    var bar=barChart(['官方号','自营号','兼职号'],[sc.off.join,sc.self.join,sc.pt.join],['#B6C2CF','#97979C','#8C99A8']);
+      {name:'官方号',color:CH.off,vals:weeks.map(function(w){return sumCycle(pid,w,'official');})},
+      {name:'自营号',color:CH.self,vals:weeks.map(function(w){return sumCycle(pid,w,'self');})},
+      {name:'兼职号',color:CH.pt,vals:weeks.map(function(w){return sumCycle(pid,w,'parttime');})}    ]);
+    var bar=barChart(['官方号','自营号','兼职号'],[sc.off.join,sc.self.join,sc.pt.join],[CH.off,CH.self,CH.pt]);
 
     return focus+
       '<div class="mb">'+stats+'</div>'+
@@ -1149,7 +1163,7 @@
     return '<div class="card mb"><div class="row mb" style="justify-content:space-between"><h3 style="margin:0">'+I.traffic+'引流热力图</h3>'+
       '<div class="row" style="gap:6px">'+tabs+'</div></div>'+
       '<div class="heat">'+cells+'</div>'+
-      '<div class="heat-legend">少 <i class="h0" style="background:#F4F1EA"></i><i class="h1" style="background:#DBDDDA"></i><i class="h2" style="background:#B6C2CF"></i><i class="h3" style="background:#7C8997"></i><i class="h4" style="background:#56565B"></i> 多</div>'+
+      '<div class="heat-legend">少 <i class="h0"></i><i class="h1"></i><i class="h2"></i><i class="h3"></i><i class="h4"></i> 多</div>'+
       '<div class="small muted mt">本区间引流合计 <b>'+sum+'</b> 人 · 每格显示「周 / 该周引流总数」（官号计加好友，其余计进群）</div></div>';
   }
   /* ---------- 引流图表 ---------- */
@@ -1173,34 +1187,34 @@
     var sy=function(v){return pad.t+ih-(v/maxV*ih);};
     var dots=wkList.map(function(w,i){
       var x=sx(wkList.length===1?0.5:i),o=weeks[w].off,s=weeks[w].self,p=weeks[w].pt;
-      return '<circle cx="'+x+'" cy="'+sy(o)+'" r="3.5" fill="#B6C2CF"/>'+
-        '<circle cx="'+x+'" cy="'+sy(s)+'" r="3.5" fill="#97979C"/>'+
-        '<circle cx="'+x+'" cy="'+sy(p)+'" r="3.5" fill="#8C99A8"/>';
+      return '<circle cx="'+x+'" cy="'+sy(o)+'" r="3.5" fill="'+CH.off+'"/>'+
+        '<circle cx="'+x+'" cy="'+sy(s)+'" r="3.5" fill="'+CH.self+'"/>'+
+        '<circle cx="'+x+'" cy="'+sy(p)+'" r="3.5" fill="'+CH.pt+'"/>';
     }).join('');
     var lines='';
     if(wkList.length>1){
       var pOff=wkList.map(function(w,i){return (sx(i)+','+sy(weeks[w].off));}).join(' ');
       var pSelf=wkList.map(function(w,i){return (sx(i)+','+sy(weeks[w].self));}).join(' ');
       var pPt=wkList.map(function(w,i){return (sx(i)+','+sy(weeks[w].pt));}).join(' ');
-      lines='<polyline points="'+pOff+'" fill="none" stroke="#B6C2CF" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"/>'+
-        '<polyline points="'+pSelf+'" fill="none" stroke="#97979C" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"/>'+
-        '<polyline points="'+pPt+'" fill="none" stroke="#8C99A8" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"/>';
+      lines='<polyline points="'+pOff+'" fill="none" stroke="'+CH.off+'" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"/>'+
+        '<polyline points="'+pSelf+'" fill="none" stroke="'+CH.self+'" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"/>'+
+        '<polyline points="'+pPt+'" fill="none" stroke="'+CH.pt+'" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"/>';
     }
     // X轴标签：倾斜放置，避免与图例/其他文字重叠
     var xLabels=wkList.map(function(w,i){
       var x=sx(wkList.length===1?0.5:i);
       var ly=H-pad.b+16;
-      return '<text x="'+x+'" y="'+ly+'" text-anchor="end" font-size="10" fill="#97979C" transform="rotate(32,'+x+','+ly+')">'+esc(w)+'</text>';
+      return '<text x="'+x+'" y="'+ly+'" text-anchor="end" font-size="10" fill="'+CH.axis+'" transform="rotate(32,'+x+','+ly+')">'+esc(w)+'</text>';
     }).join('');
     // Y轴网格线 + 标签
     var yGrid='',yLabels='';
     for(var i=0;i<=4;i++){
       var v=Math.round(maxV*i/4),y=sy(v);
-      yGrid+='<line x1="'+pad.l+'" y1="'+y+'" x2="'+(W-pad.r)+'" y2="'+y+'" stroke="#EEF0ED" stroke-width="1"/>';
-      yLabels+='<text x="'+(pad.l-6)+'" y="'+(y+4)+'" text-anchor="end" font-size="11" fill="#97979C">'+v+'</text>';
+      yGrid+='<line x1="'+pad.l+'" y1="'+y+'" x2="'+(W-pad.r)+'" y2="'+y+'" stroke="'+CH.grid+'" stroke-width="1"/>';
+      yLabels+='<text x="'+(pad.l-6)+'" y="'+(y+4)+'" text-anchor="end" font-size="11" fill="'+CH.axis+'">'+v+'</text>';
     }
     // 图例改为 SVG 外独立 HTML 行，彻底避免与坐标轴/标签重叠
-    var legend='<div style="display:flex;gap:18px;justify-content:center;margin-top:6px;font-size:12px;color:#56565B"><span><i style="display:inline-block;width:10px;height:10px;border-radius:50%;background:#B6C2CF;margin-right:5px;vertical-align:middle"></i>官方号</span><span><i style="display:inline-block;width:10px;height:10px;border-radius:50%;background:#97979C;margin-right:5px;vertical-align:middle"></i>自营号</span><span><i style="display:inline-block;width:10px;height:10px;border-radius:50%;background:#8C99A8;margin-right:5px;vertical-align:middle"></i>兼职号</span></div>';
+    var legend='<div style="display:flex;gap:18px;justify-content:center;margin-top:6px;font-size:12px;color:'+CH.txt+'"><span><i style="display:inline-block;width:10px;height:10px;border-radius:50%;background:'+CH.off+';margin-right:5px;vertical-align:middle"></i>官方号</span><span><i style="display:inline-block;width:10px;height:10px;border-radius:50%;background:'+CH.self+';margin-right:5px;vertical-align:middle"></i>自营号</span><span><i style="display:inline-block;width:10px;height:10px;border-radius:50%;background:'+CH.pt+';margin-right:5px;vertical-align:middle"></i>兼职号</span></div>';
     return '<div class="card"><h3 style="margin:0 0 12px 0;font-size:14px">📈 本月度各号导引流趋势（按周）</h3>'+
       '<svg viewBox="0 0 '+W+' '+H+'" style="width:100%;height:auto;display:block">'+yGrid+yLabels+
       lines+dots+xLabels+'</svg>'+legend+'</div>';
@@ -1210,24 +1224,24 @@
     var W=420,H=300,pad={t:40,r:28,b:88,l:28};
     var iw=W-pad.l-pad.r,ih=H-pad.t-pad.b;
     var bars=[
-      {label:'官方号',val:sc.off.join,color:'#B6C2CF'},
-      {label:'自营号',val:sc.self.join,color:'#97979C'},
-      {label:'兼职号',val:sc.pt.join,color:'#8C99A8'}
+      {label:'官方号',val:sc.off.join,color:CH.off},
+      {label:'自营号',val:sc.self.join,color:CH.self},
+      {label:'兼职号',val:sc.pt.join,color:CH.pt}
     ];
     var maxV=Math.max(5,Math.max.apply(null,bars.map(function(b){return b.val;})));
     var bw=iw/bars.length*0.5,gap=iw/bars.length;
     var rects=bars.map(function(b,i){
       var bh=b.val/maxV*ih,x=pad.l+gap*i+(gap-bw)/2,y=pad.t+ih-bh;
       return '<rect x="'+x+'" y="'+y+'" width="'+bw+'" height="'+bh+'" rx="4" fill="'+b.color+'"/>'+
-        '<text x="'+(x+bw/2)+'" y="'+(y-7)+'" text-anchor="middle" font-size="15" font-weight="600" fill="#56565B">'+b.val+'</text>'+
-        '<text x="'+(x+bw/2)+'" y="'+(H-pad.b+24)+'" text-anchor="middle" font-size="12" fill="#56565B">'+b.label+'</text>';
+        '<text x="'+(x+bw/2)+'" y="'+(y-7)+'" text-anchor="middle" font-size="15" font-weight="600" fill="'+CH.txt+'">'+b.val+'</text>'+
+        '<text x="'+(x+bw/2)+'" y="'+(H-pad.b+24)+'" text-anchor="middle" font-size="12" fill="'+CH.txt+'">'+b.label+'</text>';
     }).join('');
     // 底部统计行（SVG 外独立 div，避免与柱底分类标签重叠）
     var ptTotal=sc.pt.join;
     var mKey=APP.state.tfMonth;
     var isAll=(mKey==='all');
     var mLabel=isAll?'全部':(mKey.substring(0,4)+'年'+Number(mKey.substring(5))+'月');
-    var footer='<div style="display:flex;justify-content:flex-end;font-size:12px;color:#97979C;margin-top:10px;padding:0 4px"><span>统计月份　<b style="color:#56565B">'+mLabel+'</b></span></div>';
+    var footer='<div style="display:flex;justify-content:flex-end;font-size:12px;color:'+CH.axis+';margin-top:10px;padding:0 4px"><span>统计月份　<b style="color:'+CH.txt+'">'+mLabel+'</b></span></div>';
     return '<div class="card"><h3 style="margin:0 0 12px 0;font-size:14px">📊 本月度三类引流对比</h3>'+
       '<svg viewBox="0 0 '+W+' '+H+'" style="width:100%;height:auto;display:block">'+rects+'</svg>'+footer+'</div>';
   }
@@ -1265,8 +1279,8 @@
         smini('官方号',sc.off.join,sc.off.score,'var(--official)')+
         smini('自营号',sc.self.join,sc.self.score,'var(--self)')+
         smini('兼职号',sc.pt.join,sc.pt.score,'var(--parttime)')+
-        smini('三类合计人数',grandJoin,'','#B6C2CF')+
-        smini('三类合计分数',sc.total,'','#7C8997',' 分')+
+        smini('三类合计人数',grandJoin,'',CH.off)+
+        smini('三类合计分数',sc.total,'',CH.txt,' 分')+
       '</div></div>';
     // 明细筛选：月度（日历月份）→ 周（级联该月各周）→ 账号（monthFiltered 已在函数开头定义）
     var fP=APP.state.tfPeriod;
@@ -1514,8 +1528,8 @@
       var dots=s.vals.map(function(v,i){return '<circle cx="'+X(i).toFixed(1)+'" cy="'+Y(v).toFixed(1)+'" r="3" fill="'+s.color+'"/>';}).join('');
       return '<path d="'+d+'" fill="none" stroke="'+s.color+'" stroke-width="2"/>'+dots;
     }).join('');
-    var xlabels=labels.map(function(l,i){return '<text x="'+X(i).toFixed(1)+'" y="'+(H-8)+'" font-size="10" fill="#97979C" text-anchor="middle">'+esc(l)+'</text>';}).join('');
-    var legend=series.map(function(s){return '<span style="display:inline-flex;align-items:center;gap:4px;margin-right:10px;font-size:11px;color:#97979C"><i style="width:10px;height:10px;border-radius:3px;background:'+s.color+';display:inline-block"></i>'+esc(s.name)+'</span>';}).join('');
+    var xlabels=labels.map(function(l,i){return '<text x="'+X(i).toFixed(1)+'" y="'+(H-8)+'" font-size="10" fill="'+CH.axis+'" text-anchor="middle">'+esc(l)+'</text>';}).join('');
+    var legend=series.map(function(s){return '<span style="display:inline-flex;align-items:center;gap:4px;margin-right:10px;font-size:11px;color:'+CH.axis+'"><i style="width:10px;height:10px;border-radius:3px;background:'+s.color+';display:inline-block"></i>'+esc(s.name)+'</span>';}).join('');
     return '<svg viewBox="0 0 '+W+' '+H+'" width="100%" style="max-height:220px">'+paths+xlabels+'</svg><div style="margin-top:4px">'+legend+'</div>';
   }
   function barChart(labels,vals,colors){
@@ -1526,8 +1540,8 @@
     var bars=labels.map(function(l,i){
       var x=pad+gap*i+(gap-bw)/2,h=H-pad-Y(vals[i]);
       return '<rect x="'+x.toFixed(1)+'" y="'+Y(vals[i]).toFixed(1)+'" width="'+bw.toFixed(1)+'" height="'+h.toFixed(1)+'" rx="4" fill="'+colors[i]+'"/>'+
-        '<text x="'+(x+bw/2).toFixed(1)+'" y="'+(Y(vals[i])-6).toFixed(1)+'" font-size="11" fill="#56565B" text-anchor="middle" font-weight="700">'+vals[i]+'</text>'+
-        '<text x="'+(x+bw/2).toFixed(1)+'" y="'+(H-8)+'" font-size="10" fill="#97979C" text-anchor="middle">'+esc(l)+'</text>';
+        '<text x="'+(x+bw/2).toFixed(1)+'" y="'+(Y(vals[i])-6).toFixed(1)+'" font-size="11" fill="'+CH.txt+'" text-anchor="middle" font-weight="700">'+vals[i]+'</text>'+
+        '<text x="'+(x+bw/2).toFixed(1)+'" y="'+(H-8)+'" font-size="10" fill="'+CH.axis+'" text-anchor="middle">'+esc(l)+'</text>';
     }).join('');
     return '<svg viewBox="0 0 '+W+' '+H+'" width="100%" style="max-height:220px">'+bars+'</svg>';
   }
