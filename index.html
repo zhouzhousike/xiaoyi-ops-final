@@ -794,13 +794,34 @@
   }
   function reviewsView(){
     var arr=APP.data.reviews;
-    if(!arr.length)return '<div class="empty">发布后可在「爆款复盘」记录单篇曝光/赞藏评/进群</div>';
-    return '<div class="list">'+arr.map(function(r){
-      return '<div class="li"><div class="body"><div class="t">'+esc(r.title)+'</div>'+
-        '<div class="m">曝光 '+esc(r.expose||0)+' · 赞藏评 '+esc(r.interact||0)+' · 进群 '+esc(r.join||0)+'</div></div>'+
-        '<div class="acts"><button class="btn sm ghost" data-act="revEdit" data-id="'+r.id+'">'+I.edit+'</button>'+
-        '<button class="btn sm danger" data-act="revDel" data-id="'+r.id+'">'+I.trash+'</button></div></div>';
-    }).join('')+'</div>';
+    if(!arr.length)return '<div class="row mb"><button class="btn" data-act="revAdd">'+I.plus+'记录复盘</button></div><div class="empty">还没有复盘记录。可在「发布追踪」里把爆款/高浏览帖子关联过来做复盘</div>';
+    return '<div class="row mb"><button class="btn" data-act="revAdd">'+I.plus+'记录复盘</button></div>'+
+      '<div class="list">'+arr.map(function(r){
+        var pub=r.publishId?find(APP.data.publishes,r.publishId):null;
+        var pubInfo=pub?(' · 关联：'+esc(pub.date)+' '+esc(pub.title)):'';
+        return '<div class="li"><div class="body"><div class="t">'+esc(r.title)+'</div>'+
+          '<div class="m">曝光 '+esc(r.expose||0)+' · 赞藏评 '+esc(r.interact||0)+' · 进群 '+esc(r.join||0)+pubInfo+'</div>'+
+          (r.note?'<div class="m" style="white-space:pre-wrap;margin-top:4px">'+esc(r.note)+'</div>':'')+'</div>'+
+          '<div class="acts"><button class="btn sm ghost" data-act="revEdit" data-id="'+r.id+'">'+I.edit+'</button>'+
+          '<button class="btn sm danger" data-act="revDel" data-id="'+r.id+'">'+I.trash+'</button></div></div>';
+      }).join('')+'</div>';
+  }
+  function revForm(rec){
+    rec=rec||{title:'',expose:0,interact:0,join:0,note:'',date:today(),publishId:''};
+    var publishOpts='<option value="">（不关联）</option>'+APP.data.publishes.map(function(p){return '<option value="'+p.id+'"'+(rec.publishId===p.id?' selected':'')+'>'+esc(p.date)+' · '+esc(p.title)+'</option>';}).join('');
+    openModal('<h3>'+(rec.id?'编辑复盘':'记录复盘')+'</h3>'+
+      field('帖子标题',inp('rv_title',rec.title))+
+      field('关联发布（可选，选后自动带出数据）',sel('rv_pub',publishOpts))+
+      '<div class="grid2">'+
+        field('曝光量（浏览）',inp('rv_expose',rec.expose))+
+        field('赞藏评合计',inp('rv_interact',rec.interact))+
+        field('进群数',inp('rv_join',rec.join))+
+        field('发布日期',inp('rv_date',rec.date))+
+      '</div>'+
+      field('复盘要点', '<textarea id="rv_note">'+esc(rec.note||'')+'</textarea>')+
+      '<div class="row" style="justify-content:flex-end"><button class="btn ghost" data-x>取消</button><button class="btn" data-act="revSave" data-id="'+(rec.id||'')+'">保存</button></div>');
+    var pub=document.getElementById('rv_pub');
+    if(pub)pub.addEventListener('change',function(){var p=find(APP.data.publishes,this.value);if(p){var st=pubStats(p);var e=document.getElementById('rv_expose'),i=document.getElementById('rv_interact');if(e)e.value=st.view;if(i)i.value=st.like+st.fav+st.comment;}});
   }
 
   /* ---------- 引流数据 + 业绩 ---------- */
@@ -1457,6 +1478,14 @@
         p.title=$('#pb_title').value;p.date=$('#pb_date').value;p.account=$('#pb_acc').value;p.link=$('#pb_link').value;
         p.view=parseCount($('#pb_view').value);p.like=parseCount($('#pb_like').value);p.fav=parseCount($('#pb_fav').value);p.comment=parseCount($('#pb_comment').value);p.statTime=$('#pb_statTime').value;
         if(!id)APP.data.publishes.unshift(p);save();closeModal();render();toast('已保存');break;}
+      case 'revAdd':revForm();break;
+      case 'revEdit':revForm(find(APP.data.reviews,id));break;
+      case 'revDel':if(confirm('确认删除该复盘？')){APP.data.reviews=APP.data.reviews.filter(function(x){return x.id!==id;});save();render();toast('已删除');}break;
+      case 'revSave':{
+        var r=id?find(APP.data.reviews,id):{id:uid()};
+        r.title=$('#rv_title').value;r.publishId=$('#rv_pub').value||'';r.date=$('#rv_date').value;
+        r.expose=parseCount($('#rv_expose').value);r.interact=parseCount($('#rv_interact').value);r.join=parseCount($('#rv_join').value);r.note=$('#rv_note').value;
+        if(!id)APP.data.reviews.unshift(r);save();closeModal();render();toast('已保存');break;}
       case 'trafficAdd':trafficForm();break;
       case 'trafficEdit':trafficForm(find(APP.data.traffic,id));break;
       case 'trafficDel':if(confirm('确认删除该条统计？')){APP.data.traffic=APP.data.traffic.filter(function(x){return x.id!==id;});save();render();toast('已删除');}break;
