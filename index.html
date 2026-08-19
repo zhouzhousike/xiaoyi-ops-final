@@ -374,12 +374,17 @@
   function seed(){
     if(IS_GUEST){
       // 给别人用的空白工作台：无任何业务数据，仅保留一个可改的占位官方号，避免表单报错
+      // 选题库：独立选题池，首次打开即预置 20 条（与“自己”的选题库不同），之后每周再补 5 条
+      var gInit=Math.min(20,GUEST_TOPIC_POOL.length);
+      var gTopics=GUEST_TOPIC_POOL.slice(0,gInit).map(function(s){
+        return {id:uid(),title:s.title,angle:s.angle,subject:s.subject,stage:s.stage,pain:s.pain,forAccount:'',status:'idea',audience:s.audience||'27',note:'（每周自动补充）',createdAt:today()};
+      });
       return {
         meta:{currentPeriod:'p_0805',examDate:'2026-12-26',examName:'27考研'},
         accounts:[{id:'acc_off',name:'官方号',type:'official',rate:1,holder:'',owner:'',active:true,persona:'',note:''}],
         periods:[{id:'p_0805',start:'2026-08-05',end:'2026-09-05',note:'当前周期'}],
-        traffic:[], groups:[], materials:[], topics:[], drafts:[], publishes:[], reviews:[], qa:[], files:[],
-        topicAuto:{last:'',idx:0}
+        traffic:[], groups:[], materials:[], topics:gTopics, drafts:[], publishes:[], reviews:[], qa:[], files:[],
+        topicAuto:{last:today(),idx:gInit}
       };
     }
     var accounts=[
@@ -583,6 +588,60 @@
     {title:'28考研：本校学长经验怎么借鉴',angle:'经验去水分',subject:'通用',stage:'基础起步',pain:'经验真假难辨',audience:'28'},
     {title:'计网背诵：每层的协议一句话',angle:'协议归属速记',subject:'408',stage:'基础起步',pain:'协议记不住',audience:'28'},
     {title:'28考研：信息差怎么补（免费渠道）',angle:'信息源清单',subject:'通用',stage:'基础起步',pain:'信息闭塞',audience:'28'}
+  ];
+
+  // ===== 别人的链接（guest）专属选题池：独立、更多条、与自己的选题库不同 =====
+  var GUEST_TOPIC_POOL=[
+    {title:'408全年复习规划：从0到130的时间轴',angle:'月度里程碑',subject:'通用',stage:'强化末期',pain:'无全局规划',audience:'27'},
+    {title:'数据结构：数组/链表/栈/队列一张图',angle:'结构对比图',subject:'408',stage:'强化末期',pain:'基础概念混',audience:'27'},
+    {title:'二叉树：四种遍历手画练习册',angle:'边画边记',subject:'408',stage:'强化末期',pain:'遍历易错',audience:'27'},
+    {title:'图论入门：邻接矩阵vs邻接表',angle:'两种存储对比',subject:'408',stage:'强化末期',pain:'存储选错',audience:'27'},
+    {title:'排序算法：什么时候用快排/归并/堆排',angle:'场景决策表',subject:'408',stage:'强化末期',pain:'排序乱用',audience:'27'},
+    {title:'散列表：装填因子与冲突解决',angle:'开放定址vs拉链',subject:'408',stage:'强化末期',pain:'装填因子错',audience:'27'},
+    {title:'字符串匹配：KMP到底解决啥',angle:'前缀函数直觉',subject:'408',stage:'强化末期',pain:'KMP难懂',audience:'27'},
+    {title:'计组：定点数与浮点数的表示',angle:'位级拆解',subject:'408',stage:'强化末期',pain:'表示法混',audience:'27'},
+    {title:'存储系统：Cache-主存-辅存层级',angle:'层级速度表',subject:'408',stage:'强化末期',pain:'层级记混',audience:'27'},
+    {title:'指令流水线：吞吐率怎么算',angle:'时空图模板',subject:'408',stage:'真题冲刺',pain:'吞吐率错',audience:'27'},
+    {title:'CPU：五段流水时空图',angle:'逐步画',subject:'408',stage:'真题冲刺',pain:'时空图乱',audience:'27'},
+    {title:'总线与I/O：中断vs DMA',angle:'CPU干预对比',subject:'408',stage:'强化末期',pain:'两种混',audience:'27'},
+    {title:'OS：进程状态转换图',angle:'五态流转',subject:'408',stage:'强化末期',pain:'状态乱',audience:'27'},
+    {title:'线程与协程：现代并发基础',angle:'轻量对比',subject:'408',stage:'基础起步',pain:'概念新',audience:'27'},
+    {title:'内存管理：虚拟地址到物理地址',angle:'地址翻译步',subject:'408',stage:'强化末期',pain:'翻译错',audience:'27'},
+    {title:'页面置换：缺页中断全过程',angle:'中断流程',subject:'408',stage:'真题冲刺',pain:'缺页算错',audience:'27'},
+    {title:'文件系统：从路径到磁盘块',angle:'查找路径',subject:'408',stage:'强化末期',pain:'文件alloc乱',audience:'27'},
+    {title:'死锁：banker算法手算',angle:'安全序列',subject:'408',stage:'真题冲刺',pain:'银行家不会',audience:'27'},
+    {title:'计网：TCP可靠传输机制',angle:'确认+重传',subject:'408',stage:'强化末期',pain:'机制空',audience:'27'},
+    {title:'HTTP/HTTPS/HTTP2 演进',angle:'一眼对比',subject:'408',stage:'强化末期',pain:'版本混',audience:'27'},
+    {title:'DNS/ARP/DHCP 网络三件套',angle:'各司其职',subject:'408',stage:'强化末期',pain:'协议混',audience:'27'},
+    {title:'408选择题提速：题干关键词',angle:'关键词定位',subject:'通用',stage:'真题冲刺',pain:'选择慢',audience:'27'},
+    {title:'408大题：公式分怎么稳拿',angle:'必写公式清单',subject:'通用',stage:'真题冲刺',pain:'大题空白',audience:'27'},
+    {title:'真题套卷：限时模考节奏',angle:'3小时切分',subject:'通用',stage:'冲刺',pain:'做不完',audience:'27'},
+    {title:'错题本：按错误类型归档',angle:'错因分类表',subject:'通用',stage:'强化末期',pain:'错题乱',audience:'27'},
+    {title:'二战复盘：哪些时间花错了',angle:'时间审计',subject:'通用',stage:'强化末期',pain:'重复犯错',audience:'27'},
+    {title:'9/10/11月月度重点切换',angle:'月级清单',subject:'通用',stage:'强化末期',pain:'月度无重点',audience:'27'},
+    {title:'心态管理：焦虑时做什么',angle:'可执行清单',subject:'通用',stage:'冲刺',pain:'焦虑内耗',audience:'27'},
+    {title:'28考研：要不要现在开始',angle:'早鸟优势',subject:'通用',stage:'基础起步',pain:'启动焦虑',audience:'28'},
+    {title:'跨考408：本科非CS怎么补',angle:'补基础路径',subject:'通用',stage:'基础起步',pain:'跨考恐惧',audience:'28'},
+    {title:'408四科先学哪科',angle:'学习顺序',subject:'通用',stage:'基础起步',pain:'顺序纠结',audience:'28'},
+    {title:'数据结构：复杂度O记号直觉',angle:'量级感知',subject:'408',stage:'基础起步',pain:'复杂度懵',audience:'28'},
+    {title:'算法入门：递归与分治',angle:'自顶向下',subject:'408',stage:'基础起步',pain:'递归难',audience:'28'},
+    {title:'计组：从晶体管到CPU',angle:'硬件轮廓',subject:'408',stage:'基础起步',pain:'计组抽象',audience:'28'},
+    {title:'OS：为什么需要操作系统',angle:'资源管理',subject:'408',stage:'基础起步',pain:'OS玄学',audience:'28'},
+    {title:'计网：分组交换怎么理解',angle:'分组流转',subject:'408',stage:'基础起步',pain:'计网散',audience:'28'},
+    {title:'数学与408：每日时间配比',angle:'时间切分',subject:'数学',stage:'基础起步',pain:'两科抢时间',audience:'28'},
+    {title:'英语单词：考研核心词计划',angle:'词表拆分',subject:'英语',stage:'基础起步',pain:'单词忘',audience:'28'},
+    {title:'政治：早启动低成本路线',angle:'政治时间线',subject:'政治',stage:'基础起步',pain:'政治时机',audience:'28'},
+    {title:'教材怎么选：王道/教材/视频',angle:'搭配方案',subject:'通用',stage:'基础起步',pain:'资料多',audience:'28'},
+    {title:'笔记法：康奈尔笔记用起来',angle:'模板落地',subject:'通用',stage:'基础起步',pain:'不会记',audience:'28'},
+    {title:'番茄钟：每天高效4小时',angle:'节奏训练',subject:'通用',stage:'基础起步',pain:'效率低',audience:'28'},
+    {title:'信息源：哪些博主值得跟',angle:'筛选清单',subject:'通用',stage:'基础起步',pain:'信息杂',audience:'28'},
+    {title:'择校：408院校梯度',angle:'梯度分层',subject:'通用',stage:'基础起步',pain:'择校难',audience:'28'},
+    {title:'夏令营：大三暑假怎么准备',angle:'时间规划',subject:'通用',stage:'基础起步',pain:'准备晚',audience:'28'},
+    {title:'基础阶段：一轮复习检查清单',angle:'自查表',subject:'通用',stage:'基础起步',pain:'不知进度',audience:'28'},
+    {title:'28早鸟：数据结构抢跑30天',angle:'周级任务',subject:'408',stage:'基础起步',pain:'不知练啥',audience:'28'},
+    {title:'学习习惯：如何不拖延',angle:'微习惯法',subject:'通用',stage:'基础起步',pain:'拖延',audience:'28'},
+    {title:'复习节奏：周计划与日计划',angle:'计划模板',subject:'通用',stage:'基础起步',pain:'计划空',audience:'28'},
+    {title:'答疑闭环：问题不过夜',angle:'答疑SOP',subject:'通用',stage:'基础起步',pain:'问题堆积',audience:'28'}
   ];
 
   /* ---------- 业绩考核积分引擎 ---------- */
@@ -851,7 +910,7 @@
   // 选题库每周自动补充：从 TOPIC_POOL 按顺序放出若干条（默认每周3条），按最近一次自动补充时间控制节奏
   function topicAutoRelease(force){
     if(!APP.data.topicAuto)APP.data.topicAuto={last:'',idx:0};
-    var ta=APP.data.topicAuto, pool=TOPIC_POOL, N=3;
+    var ta=APP.data.topicAuto, pool=IS_GUEST?GUEST_TOPIC_POOL:TOPIC_POOL, N=IS_GUEST?5:3;
     if(ta.idx>=pool.length)return {added:0,total:pool.length,remain:0,done:true};
     var due=force||!ta.last||(daysBetween(ta.last,today())>=7);
     if(!due)return {added:0,total:pool.length,remain:pool.length-ta.idx,done:false};
@@ -876,7 +935,8 @@
     var c27=APP.data.topics.filter(function(t){return (t.audience||'27')==='27';}).length;
     var c28=APP.data.topics.filter(function(t){return (t.audience||'27')==='28';}).length;
     var ta=APP.data.topicAuto||{last:'',idx:0};
-    var remain=Math.max(0,TOPIC_POOL.length-(ta.idx||0));
+    var tpool=IS_GUEST?GUEST_TOPIC_POOL:TOPIC_POOL;
+    var remain=Math.max(0,tpool.length-(ta.idx||0));
     var lastTxt=ta.last?ta.last:'尚未';
     var nextTxt=ta.last?fmtDate(new Date(parseDate(ta.last).getTime()+7*86400000)):'（首次打开即补充）';
     var cards='<div class="grid g2">'+list.map(function(t){
