@@ -278,12 +278,10 @@
   var IS_GUEST = /[?&](guest|demo|blank)\b/i.test(location.search || '');
   var KEY = IS_GUEST ? "wb_yutian_ops_guest_v1" : "wb_yutian_ops_v1";
   var GUEST_DATA_VERSION = 2;
-  document.body.className = IS_GUEST ? 'guest' : '';
-  // 图表配色：主链接用原蓝灰系；guest 用图片5色系（背景浅 FROST/LINEN/ASH，重点深 PINE/IRON）
-  var CH = IS_GUEST ? {
-    off:'#5E6462', self:'#7A857C', pt:'#B7ADA2',
-    grid:'#E4DED4', axis:'#7A857C', txt:'#5E6462'
-  } : {
+  // 配色：guest 链接沿用主链接（小艺工作台）的米黄+蓝灰配色，不再单独换肤
+  document.body.className = '';
+  // 图表配色：两个链接统一蓝灰系
+  var CH = {
     off:'#B6C2CF', self:'#97979C', pt:'#8C99A8',
     grid:'#EEF0ED', axis:'#97979C', txt:'#56565B'
   };
