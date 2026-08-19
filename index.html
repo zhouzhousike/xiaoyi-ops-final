@@ -268,6 +268,7 @@
   "use strict";
   var IS_GUEST = /[?&](guest|demo|blank)\b/i.test(location.search || '');
   var KEY = IS_GUEST ? "wb_yutian_ops_guest_v1" : "wb_yutian_ops_v1";
+  var GUEST_DATA_VERSION = 2;
   document.body.className = IS_GUEST ? 'guest' : '';
   var APP = {};
 
@@ -301,7 +302,12 @@
     if(!d.topicAuto)d.topicAuto={last:'',idx:0};
   }
   function load(){
-    try{var s=localStorage.getItem(KEY);if(s){var d=JSON.parse(s);migrateAccounts(d);return d;}}catch(e){}
+    try{var s=localStorage.getItem(KEY);if(s){
+      var d=JSON.parse(s);
+      // 别人用的链接：数据版本不匹配时自动重置，避免旧缓存导致新选题/配色不生效
+      if(IS_GUEST && (d.version|0)!==GUEST_DATA_VERSION){ return seed(); }
+      migrateAccounts(d);return d;
+    }}catch(e){}
     return seed();
   }
   function save(){localStorage.setItem(KEY,JSON.stringify(APP.data));}
@@ -384,7 +390,8 @@
         accounts:[{id:'acc_off',name:'官方号',type:'official',rate:1,holder:'',owner:'',active:true,persona:'',note:''}],
         periods:[{id:'p_0805',start:'2026-08-05',end:'2026-09-05',note:'当前周期'}],
         traffic:[], groups:[], materials:[], topics:gTopics, drafts:[], publishes:[], reviews:[], qa:[], files:[],
-        topicAuto:{last:today(),idx:gInit}
+        topicAuto:{last:today(),idx:gInit},
+        version:GUEST_DATA_VERSION
       };
     }
     var accounts=[
