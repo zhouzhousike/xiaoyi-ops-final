@@ -395,13 +395,13 @@
       {id:uid(),name:'26考研数据结构强化课程',type:'课程',audience:'26',status:'已放',version:'v1',obtain:'进群',intro:'数据结构强化专题，Q老师主讲，实战应试向'},
       {id:uid(),name:'26考研计组强化课程',type:'课程',audience:'26',status:'已放',version:'v1',obtain:'进群',intro:'计算机组成原理强化，含高频考点切片'},
       {id:uid(),name:'27考研算法集训营',type:'课程',audience:'27',status:'已放',version:'v1',obtain:'进群',intro:'算法代码题攻坚，敢写敢套模板'},
-      {id:uid(),name:'数据结构每日一题汇总版',type:'汇总',audience:'通用',status:'已放',version:'2026.08',obtain:'进群',intro:'每日一题持续沉淀汇总'},
-      {id:uid(),name:'计组每日一题汇总版',type:'汇总',audience:'通用',status:'已放',version:'2026.08',obtain:'进群',intro:''},
-      {id:uid(),name:'操作系统每日一题汇总版',type:'汇总',audience:'通用',status:'已放',version:'2026.08',obtain:'进群',intro:''},
+      {id:uid(),name:'数据结构每日一题汇总版',type:'其他',audience:'通用',status:'已放',version:'2026.08',obtain:'进群',intro:'每日一题持续沉淀汇总'},
+      {id:uid(),name:'计组每日一题汇总版',type:'其他',audience:'通用',status:'已放',version:'2026.08',obtain:'进群',intro:''},
+      {id:uid(),name:'操作系统每日一题汇总版',type:'其他',audience:'通用',status:'已放',version:'2026.08',obtain:'进群',intro:''},
       {id:uid(),name:'真题分类(选择题)',type:'真题',audience:'通用',status:'已放',version:'v2',obtain:'加微',intro:'按考点分类的历年选择真题'},
-      {id:uid(),name:'算法练习册',type:'练习',audience:'27',status:'待放',version:'',obtain:'加微',intro:'算法专项练习，配精讲'},
-      {id:uid(),name:'王道课后大题必刷筛选汇总',type:'练习',audience:'通用',status:'已放',version:'',obtain:'进群',intro:'剔除非重点，只刷必考大题'},
-      {id:uid(),name:'130分高分学长·近三年真题分析文档',type:'文档',audience:'通用',status:'已放',version:'',obtain:'加微',intro:'近三年真题逐题拆解与得分点'}
+      {id:uid(),name:'算法练习册',type:'习题册',audience:'27',status:'待放',version:'',obtain:'加微',intro:'算法专项练习，配精讲'},
+      {id:uid(),name:'王道课后大题必刷筛选汇总',type:'习题册',audience:'通用',status:'已放',version:'',obtain:'进群',intro:'剔除非重点，只刷必考大题'},
+      {id:uid(),name:'130分高分学长·近三年真题分析文档',type:'其他',audience:'通用',status:'已放',version:'',obtain:'加微',intro:'近三年真题逐题拆解与得分点'}
     ];
     // 预置选题库（我直接生成的 27考研 强化末期→冲刺 选题，供挑选）
     var topics=[
@@ -513,7 +513,7 @@
 
   /* ---------- 业绩考核积分引擎 ---------- */
   function accById(id){var a=APP.data.accounts;for(var i=0;i<a.length;i++)if(a[i].id===id)return a[i];return null;}
-  function typeLabel(t){if(t&&typeof t==='object')return t.cat||(t.type==='official'?'官方号':(t.type==='self'?'自营号':'高分学长学姐号'));var x=t;return x==='official'?'官方号':(x==='self'?'自营号':'高分学长学姐号');}
+  function typeLabel(t){if(t&&typeof t==='object')return t.cat||(t.type==='official'?'官方号':(t.type==='self'?'自营号':'兼职号'));var x=t;return x==='official'?'官方号':(x==='self'?'自营号':'兼职号');}
   function convertOwnerOf(name){
     var m=String(name||'').match(/(\d+)\D*$/);
     if(!m)return '—';
@@ -641,7 +641,7 @@
     if(v==='content')return '选题库 · 写稿 · 发布 · 复盘';
     if(v==='traffic')return '按周记录（每月5号~次月5号为一统计月度），自动算业绩分';
     if(v==='private')return '群 → 一对一加好友(转私域深度)';
-    if(v==='materials')return '外化资料库 + 答疑知识库';
+    if(v==='materials')return '外化资料库 + 资料文件';
     if(v==='accounts')return '账号档案 · 类型/持有者/负责人/人设/状态';
     if(v==='backup')return '导出/导入/清空';
     return '';
@@ -1008,7 +1008,7 @@
       else weeks[c].pt+=Number(r.join||0);
     });
     var wkList=Object.keys(weeks).sort(function(a,b){return (weeks[a].cstart||'')<(weeks[b].cstart||'')?-1:1;});
-    if(!wkList.length)wkList=['(暂无)'];
+    if(!wkList.length)wkList=['(暂无)'];weeks['(暂无)']={off:0,self:0,pt:0,cstart:''};
     var allVals=[];wkList.forEach(function(w){allVals.push(weeks[w].off,weeks[w].self,weeks[w].pt);});
     var maxV=Math.max(5,Math.max.apply(null,allVals));
     var sx=function(i){return pad.l+i*(iw/Math.max(1,wkList.length-1));};
@@ -1224,7 +1224,7 @@
   /* ---------- 课程资料 ---------- */
   function viewMaterials(){
     var all=APP.data.materials;
-    var typeOrder=['课程','汇总','真题','练习','文档'];
+    var typeOrder=['课程','真题','习题册','其他'];
     var cur=APP.state.matType||'全部';
     var ms=(cur==='全部')?all:all.filter(function(m){return m.type===cur;});
     var filter='<div class="row mb">'+['全部'].concat(typeOrder).map(function(t){
@@ -1253,17 +1253,7 @@
           '<button class="btn sm danger" data-act="fileDel" data-id="'+f.id+'">'+I.trash+'</button></div></div>';
       }).join('')+'</div>'):'<div class="empty">还没有上传文件，点「上传文件」把资料存进来</div>')+'</div>'+
       '<input type="file" id="matFile" multiple style="display:none">';
-    var qa=APP.data.qa;
-    var qaHtml='<div class="card mt"><div class="row mb"><h3 style="margin:0">'+I.book+'答疑知识库</h3>'+
-      '<button class="btn sm" data-act="qaAdd">'+I.plus+'沉淀问答</button></div>'+
-      (qa.length?('<div class="list">'+qa.map(function(q){
-        return '<div class="li"><div class="body"><div class="t">Q：'+esc(q.question)+'</div>'+
-          '<div class="m">A：'+esc(q.answer)+'</div>'+
-          '<div class="muted small">重要度：'+esc(q.importance||'-')+(q.sourceGroup?' · 来源：'+esc(q.sourceGroup):'')+(q.tags?' · '+esc(q.tags):'')+'</div></div>'+
-          '<div class="acts"><button class="btn sm ghost" data-act="qaEdit" data-id="'+q.id+'">'+I.edit+'</button>'+
-          '<button class="btn sm danger" data-act="qaDel" data-id="'+q.id+'">'+I.trash+'</button></div></div>';
-      }).join('')+'</div>'):'<div class="empty">内部答疑面板的高频问题可沉淀到这里</div>')+'</div>';
-    return filter+list+filesHtml+qaHtml;
+    return filter+list+filesHtml;
   }
   function fmtSize(b){b=Number(b)||0;if(b<1024)return b+' B';if(b<1048576)return (b/1024).toFixed(1)+' KB';return (b/1048576).toFixed(2)+' MB';}
   // 读取上传文件→base64 存入 APP.data.files（带容量守卫，超出 localStorage 时提示并跳过）
@@ -1314,20 +1304,19 @@
     return list;
   }
   function accTypeOpts(sel){
-    var map=[['official','官方号 (×3)'],['self','自营号 (×1)'],['hs','高分学长学姐号 (×1)'],['pt','兼职号 (×1)']];
+    var map=[['official','官方号'],['self','自营号'],['parttime','兼职号']];
     return map.map(function(p){return '<option value="'+p[0]+'"'+(p[0]===sel?' selected':'')+'>'+p[1]+'</option>';}).join('');
   }
   function accForm(rec){
-    rec=rec||{name:'',type:'parttime',cat:'高分学长学姐号',holder:'',owner:'',persona:'',rate:1,active:true,note:''};
-    var typeSel=rec.type==='official'?'official':(rec.type==='self'?'self':(rec.cat==='兼职号'?'pt':'hs'));
+    rec=rec||{name:'',type:'parttime',cat:'兼职号',holder:'',owner:'',persona:'',rate:1,active:true,note:''};
+    var typeSel=rec.type==='official'?'official':(rec.type==='self'?'self':'parttime');
     var actSel=rec.active?'1':'0';
-    var rateSel=String(rec.rate||1);
     openModal('<h3>'+(rec.id?'编辑账号':'新增账号')+'</h3>'+
       field('账号名',inp('ac_name',rec.name))+
       field('类型',sel('ac_type',accTypeOpts(typeSel)))+
       field('持有者',inp('ac_holder',rec.holder))+
       field('负责人',inp('ac_owner',rec.owner))+
-      field('引流倍率',sel('ac_rate',opt(['1','3'],rateSel)))+
+      field('引流倍率（×）',inp('ac_rate',rec.rate||1))+
       field('状态',sel('ac_active',opt(['1','0'],actSel)))+
       field('人设 / 简介',inp('ac_persona',rec.persona))+
       field('备注',inp('ac_note',rec.note))+
@@ -1474,7 +1463,7 @@
   /* 资料表单 */
   function matForm(rec){
     rec=rec||{};
-    var types=opt(['课程','汇总','真题','练习','文档'],rec.type);
+    var types=opt(['课程','真题','习题册','其他'],rec.type);
     var aud=opt(['26','27','28','通用'],rec.audience);
     var st=opt(['已放','待放'],rec.status);
     var obt=opt(['进群','加微'],rec.obtain);
@@ -1669,7 +1658,7 @@
         if(tv==='official'){a.type='official';a.cat='官方号';}
         else if(tv==='self'){a.type='self';a.cat='自营号';}
         else if(tv==='pt'){a.type='parttime';a.cat='兼职号';}
-        else {a.type='parttime';a.cat='高分学长学姐号';}
+        else {a.type='parttime';a.cat='兼职号';}
         a.holder=$('#ac_holder').value;a.owner=$('#ac_owner').value;
         a.rate=Number($('#ac_rate').value)||1;a.active=$('#ac_active').value==='1';
         a.persona=$('#ac_persona').value;a.note=$('#ac_note').value;
