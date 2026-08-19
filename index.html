@@ -186,6 +186,7 @@
   .muted{color:var(--muted)} .small{font-size:12.5px}
   .chartbox{width:100%;overflow:hidden}
   .empty{text-align:center;color:var(--muted);padding:26px 10px;font-size:13.5px}
+  .sub-head{margin:16px 2px 8px;color:var(--muted);font-size:12.5px;font-weight:700;letter-spacing:.3px}
   .tabbar{display:flex;gap:6px;flex-wrap:wrap;margin-bottom:14px}
   .tabbar .tab{padding:9px 14px;border-radius:10px;font-weight:700;font-size:13px;cursor:pointer;background:#fff;border:1px solid var(--line);color:var(--muted)}
   .tabbar .tab.active{background:var(--brand);color:#fff;border-color:var(--brand)}
@@ -740,6 +741,7 @@
   function parseDate(s){var p=String(s||'').split('-');return new Date(Number(p[0]),Number(p[1])-1,Number(p[2]||1));}
   function isHotPost(p){return (Number(p.like||0)>=50)||(Number(p.fav||0)>=50)||(Number(p.comment||0)>=50);}
   function isHighViewPost(p){return (Number(p.view||0)>=1000)&&(Number(p.like||0)<50)&&(Number(p.fav||0)<50);}
+  function isFlagged(p){return (isHotPost(p)&&!isHighViewPost(p))||isHighViewPost(p);}
   function ymOf(s){var p=String(s||'').split('-');if(p.length<2)return '';var y=p[0],m=p[1];if(!/^\d+$/.test(y)||!/^\d+$/.test(m))return '';return y+'-'+('0'+Number(m)).slice(-2);}
   function pubStats(p){var a=accById(p.account);var isPT=a&&a.type==='parttime';return {view:Number(p.view||0),like:Number(p.like||0),fav:Number(p.fav||0),comment:Number(p.comment||0),isPT:isPT};}
   function optPairs(pairs,sel){return pairs.map(function(o){return '<option value="'+o[0]+'"'+(o[0]===sel?' selected':'')+'>'+o[1]+'</option>';}).join('');}
@@ -793,20 +795,34 @@
       }).join('')+'</div>';
   }
   function reviewsView(){
-    var arr=APP.data.reviews;
-    if(!arr.length)return '<div class="row mb"><button class="btn" data-act="revAdd">'+I.plus+'记录复盘</button></div><div class="empty">还没有复盘记录。可在「发布追踪」里把爆款/高浏览帖子关联过来做复盘</div>';
-    return '<div class="row mb"><button class="btn" data-act="revAdd">'+I.plus+'记录复盘</button></div>'+
-      '<div class="list">'+arr.map(function(r){
-        var pub=r.publishId?find(APP.data.publishes,r.publishId):null;
-        var pubInfo=pub?(' · 关联：'+esc(pub.date)+' '+esc(pub.title)):'';
-        return '<div class="li"><div class="body"><div class="t">'+esc(r.title)+'</div>'+
-          '<div class="m">曝光 '+esc(r.expose||0)+' · 赞藏评 '+esc(r.interact||0)+' · 进群 '+esc(r.join||0)+pubInfo+'</div>'+
-          (r.note?'<div class="m" style="white-space:pre-wrap;margin-top:4px">'+esc(r.note)+'</div>':'')+'</div>'+
-          '<div class="acts"><button class="btn sm ghost" data-act="revEdit" data-id="'+r.id+'">'+I.edit+'</button>'+
-          '<button class="btn sm danger" data-act="revDel" data-id="'+r.id+'">'+I.trash+'</button></div></div>';
-      }).join('')+'</div>';
+    var arr=APP.data.reviews||[];
+    var flagged=APP.data.publishes.filter(isFlagged).sort(function(a,b){return parseDate(b.date).getTime()-parseDate(a.date).getTime();});
+    var linked={};arr.forEach(function(r){if(r.publishId)linked[r.publishId]=true;});
+    var pending=flagged.filter(function(p){return !linked[p.id];});
+    var head='<div class="row mb"><button class="btn" data-act="revAdd">'+I.plus+'记录复盘</button>'+
+      (pending.length?'<button class="btn ghost" data-act="revImportAll">'+I.plus+'一键关联 '+pending.length+' 条</button>':'')+'</div>';
+    var pendHtml=pending.length?'<div class="sub-head">待复盘 · 来自发布追踪的爆款/高浏览（点击即关联）</div><div class="list">'+pending.map(function(p){
+      var hot=(isHotPost(p)&&!isHighViewPost(p))?' <span class="tag red">🔥爆款</span>':'';
+      var hv=isHighViewPost(p)?' <span class="tag blue">📈高浏览</span>':'';
+      var st=pubStats(p);
+      return '<div class="li"><div class="body"><div class="t">'+esc(p.title)+hot+hv+'</div>'+
+        '<div class="m">'+esc(p.date)+' · 浏览 '+formatCount(st.view)+' · 赞 '+formatCount(st.like)+' · 藏 '+formatCount(st.fav)+' · 评 '+formatCount(st.comment)+'</div></div>'+
+        '<div class="acts"><button class="btn sm" data-act="revAdd" data-pub="'+p.id+'">去复盘</button></div></div>';
+    }).join('')+'</div>':'';
+    var revHtml=arr.length?'<div class="sub-head">已复盘</div><div class="list">'+arr.map(function(r){
+      var pub=r.publishId?find(APP.data.publishes,r.publishId):null;
+      var pubInfo=pub?(' · 关联：'+esc(pub.date)+' '+esc(pub.title)):'';
+      var tag=pub?((isHotPost(pub)&&!isHighViewPost(pub))?' <span class="tag red">🔥爆款</span>':(isHighViewPost(pub)?' <span class="tag blue">📈高浏览</span>':'')):'';
+      return '<div class="li"><div class="body"><div class="t">'+esc(r.title)+tag+'</div>'+
+        '<div class="m">曝光 '+esc(r.expose||0)+' · 赞藏评 '+esc(r.interact||0)+' · 进群 '+esc(r.join||0)+pubInfo+'</div>'+
+        (r.note?'<div class="m" style="white-space:pre-wrap;margin-top:4px">'+esc(r.note)+'</div>':'')+'</div>'+
+        '<div class="acts"><button class="btn sm ghost" data-act="revEdit" data-id="'+r.id+'">'+I.edit+'</button>'+
+        '<button class="btn sm danger" data-act="revDel" data-id="'+r.id+'">'+I.trash+'</button></div></div>';
+    }).join('')+'</div>':'<div class="empty">还没有复盘记录</div>';
+    return head+pendHtml+revHtml;
   }
-  function revForm(rec){
+  function revForm(rec,pubId){
+    if(pubId){var p=find(APP.data.publishes,pubId);if(p){var st=pubStats(p);rec={id:'',title:p.title,publishId:p.id,date:p.date,expose:st.view,interact:st.like+st.fav+st.comment,join:0,note:''};}}
     rec=rec||{title:'',expose:0,interact:0,join:0,note:'',date:today(),publishId:''};
     var publishOpts='<option value="">（不关联）</option>'+APP.data.publishes.map(function(p){return '<option value="'+p.id+'"'+(rec.publishId===p.id?' selected':'')+'>'+esc(p.date)+' · '+esc(p.title)+'</option>';}).join('');
     openModal('<h3>'+(rec.id?'编辑复盘':'记录复盘')+'</h3>'+
@@ -1478,8 +1494,13 @@
         p.title=$('#pb_title').value;p.date=$('#pb_date').value;p.account=$('#pb_acc').value;p.link=$('#pb_link').value;
         p.view=parseCount($('#pb_view').value);p.like=parseCount($('#pb_like').value);p.fav=parseCount($('#pb_fav').value);p.comment=parseCount($('#pb_comment').value);p.statTime=$('#pb_statTime').value;
         if(!id)APP.data.publishes.unshift(p);save();closeModal();render();toast('已保存');break;}
-      case 'revAdd':revForm();break;
+      case 'revAdd':revForm(null, el&&el.getAttribute('data-pub'));break;
       case 'revEdit':revForm(find(APP.data.reviews,id));break;
+      case 'revImportAll':{
+        var existing={};APP.data.reviews.forEach(function(r){if(r.publishId)existing[r.publishId]=true;});
+        var added=0;
+        APP.data.publishes.filter(isFlagged).forEach(function(p){if(!existing[p.id]){var st=pubStats(p);APP.data.reviews.unshift({id:uid(),title:p.title,publishId:p.id,date:p.date,expose:st.view,interact:st.like+st.fav+st.comment,join:0,note:''});added++;}});
+        save();render();toast(added?('已关联 '+added+' 条到复盘'):'没有新的可关联');break;}
       case 'revDel':if(confirm('确认删除该复盘？')){APP.data.reviews=APP.data.reviews.filter(function(x){return x.id!==id;});save();render();toast('已删除');}break;
       case 'revSave':{
         var r=id?find(APP.data.reviews,id):{id:uid()};
