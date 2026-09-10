@@ -307,7 +307,8 @@
     star: svg('<path d="M12 3l2.6 5.6L21 9.5l-4.5 4.3L17.6 21 12 17.8 6.4 21l1.1-7.2L3 9.5l6.4-.9z"/>'),
     book: svg('<path d="M5 4h11a3 3 0 0 1 3 3v13H8a3 3 0 0 0-3 3zM5 4v16"/>'),
     user: svg('<circle cx="12" cy="8" r="3.5"/><path d="M5 21a7 7 0 0 1 14 0"/>'),
-    acc: svg('<rect x="3" y="4.5" width="18" height="15" rx="2.5"/><circle cx="9" cy="11" r="2.4"/><path d="M5.5 16.5c.6-2 2.4-3 3.5-3s2.9 1 3.5 3M14 10h5M14 14h4"/>')
+    acc: svg('<rect x="3" y="4.5" width="18" height="15" rx="2.5"/><circle cx="9" cy="11" r="2.4"/><path d="M5.5 16.5c.6-2 2.4-3 3.5-3s2.9 1 3.5 3M14 10h5M14 14h4"/>'),
+    cloud: svg('<path d="M7 18a4 4 0 0 1 0-8 5 5 0 0 1 9.6-1.5A4.5 4.5 0 0 1 17 18z"/>')
   };
 
   /* ---------- 存储 ---------- */
@@ -334,7 +335,42 @@
     }}catch(e){}
     return seed();
   }
-  function save(){localStorage.setItem(KEY,JSON.stringify(APP.data));}
+  function save(){localStorage.setItem(KEY,JSON.stringify(APP.data));if(!IS_GUEST){var c=cloudCfg();if(c.auto&&c.token)cloudPushDebounced();}}
+  /* ---------- 云同步（GitHub 私密 Gist 做手机/电脑共享） ---------- */
+  var CLOUD_KEY='wb_yutian_ops_cloud_v1';
+  function cloudCfg(){try{return JSON.parse(localStorage.getItem(CLOUD_KEY))||{};}catch(e){return {};}}
+  function saveCloud(c){localStorage.setItem(CLOUD_KEY,JSON.stringify(c));}
+  var _cloudTimer=null;
+  function cloudPushDebounced(){if(_cloudTimer)clearTimeout(_cloudTimer);_cloudTimer=setTimeout(cloudPush,1200);}
+  function gistHeaders(token){return {'Authorization':'Bearer '+token,'Content-Type':'application/json','Accept':'application/vnd.github+json'};}
+  function cloudNow(){var d=new Date();function p(n){return (n<10?'0':'')+n;}return d.getFullYear()+'-'+p(d.getMonth()+1)+'-'+p(d.getDate())+' '+p(d.getHours())+':'+p(d.getMinutes());}
+  function cloudSyncFile(){return 'wb_yutian_ops_'+(IS_GUEST?'guest':'main')+'.json';}
+  function cloudSaveInputs(){
+    var ct=$('#cloudToken'),cg=$('#cloudGist'),ca=$('#cloudAuto');if(!ct&&!cg&&!ca)return;
+    var c=cloudCfg();if(ct)c.token=ct.value.trim();if(cg)c.gistId=cg.value.trim();if(ca)c.auto=ca.checked;saveCloud(c);
+  }
+  function cloudPush(){
+    var c=cloudCfg();if(!c.token){toast('请先在数据备份页填写 GitHub 令牌');return;}
+    var body={description:'宇天408·运营工作台 云端数据',public:false,files:{}};body.files[cloudSyncFile()]={content:JSON.stringify(APP.data)};
+    var url=c.gistId?('https://api.github.com/gists/'+c.gistId):'https://api.github.com/gists';
+    var method=c.gistId?'PATCH':'POST';
+    fetch(url,{method:method,headers:gistHeaders(c.token),body:JSON.stringify(body)})
+      .then(function(r){if(!r.ok)throw new Error('HTTP '+r.status);return r.json();})
+      .then(function(j){c.gistId=j.id;c.lastSync=cloudNow();saveCloud(c);renderBackupCloud();toast('已上传到云端');})
+      .catch(function(e){toast('上传失败：'+e.message);});
+  }
+  function cloudPull(){
+    var c=cloudCfg();if(!c.token||!c.gistId){toast('请先填写令牌与 Gist ID（或先上传一次）');return;}
+    fetch('https://api.github.com/gists/'+c.gistId,{headers:gistHeaders(c.token)})
+      .then(function(r){if(!r.ok)throw new Error('HTTP '+r.status);return r.json();})
+      .then(function(j){var f=j.files&&j.files[cloudSyncFile()];if(!f){toast('云端没有 '+cloudSyncFile());return;}try{var d=JSON.parse(f.content);migrateAccounts(d);APP.data=d;save();c.lastSync=cloudNow();saveCloud(c);renderBackupCloud();toast('已从云端拉取');}catch(e){toast('云端数据解析失败');}})
+      .catch(function(e){toast('拉取失败：'+e.message);});
+  }
+  function renderBackupCloud(){
+    var ct=$('#cloudToken'),cg=$('#cloudGist'),ca=$('#cloudAuto'),cl=$('#cloudLast');var c=cloudCfg();
+    if(ct)ct.value=c.token||'';if(cg)cg.value=c.gistId||'';if(ca)ca.checked=!!c.auto;if(cl)cl.textContent='上次同步：'+(c.lastSync||'从未');
+  }
+  function bindBackup(){cloudSaveInputs();var ct=$('#cloudToken'),cg=$('#cloudGist'),ca=$('#cloudAuto');if(ct)ct.addEventListener('change',cloudSaveInputs);if(cg)cg.addEventListener('change',cloudSaveInputs);if(ca)ca.addEventListener('change',cloudSaveInputs);}
   APP.store={get:function(){return APP.data;},save:save};
 
   /* ---------- 工具 ---------- */
@@ -833,6 +869,7 @@
     else if(APP.state.view==='backup')v.innerHTML=viewBackup();
     }catch(e){console.error('render error:',e);v.innerHTML='<div class="card"><div class="empty">页面渲染出错：'+esc(e.message)+'<br><br><button class="btn sm" data-go="dashboard">返回驾驶舱</button></div></div>';}
     bindView();
+    if(APP.state.view==='backup')bindBackup();
   }
 
   /* ---------- 驾驶舱 ---------- */
@@ -1500,6 +1537,17 @@
 
   /* ---------- 数据备份 ---------- */
   function viewBackup(){
+    var cloudCard = IS_GUEST ? '' : (function(){
+      var c=cloudCfg();
+      return '<div class="card"><h3>'+I.cloud+'云同步（手机 / 电脑共享）</h3>'+
+        '<div class="muted small mb">把数据存到你的 GitHub 私密 Gist，手机和电脑填同一个令牌 + 同一个 Gist ID 即可共享。令牌仅存本机浏览器，仅用于访问 Gist，无需任何仓库权限。</div>'+
+        '<div class="mini" style="color:var(--brand-d);margin-top:-2px">本工作台云端文件为 wb_yutian_ops_main.json，与 PCOS（pcos-state.json）、备考工作台互不干扰、各自独立。</div>'+
+        field('GitHub 令牌（仅需 gist 权限）','<input type="password" id="cloudToken" placeholder="ghp_xxx" value="'+esc(c.token||'')+'">' )+
+        field('Gist ID（留空则首次上传自动创建）','<input id="cloudGist" placeholder="如 a1b2c3d4e5" value="'+esc(c.gistId||'')+'">' )+
+        '<div class="row" style="margin-top:8px"><button class="btn" data-act="cloudPush">↑ 上传到云端</button><button class="btn ghost" data-act="cloudPull">↓ 从云端拉取</button></div>'+
+        '<label style="display:flex;align-items:center;gap:6px;margin-top:10px;font-size:13px;color:var(--muted)"><input type="checkbox" id="cloudAuto" '+((c.auto)?'checked':'')+'> 每次保存自动同步到云端</label>'+
+        '<div class="mini" id="cloudLast" style="margin-top:6px">上次同步：'+(c.lastSync||'从未')+'</div></div>';
+    })();
     return '<div class="card"><h3>'+I.backup+'数据备份与恢复</h3>'+
       '<div class="muted small mb">所有数据存于本浏览器（localStorage）。换设备或清缓存前请导出备份。</div>'+
       '<div class="row">'+
@@ -1513,6 +1561,7 @@
       '<div class="kv"><span class="muted">资料</span><b>'+APP.data.materials.length+' 项</b></div>'+
       '<div class="kv"><span class="muted">答疑沉淀</span><b>'+APP.data.qa.length+' 条</b></div>'+
       '</div>'+
+      cloudCard +
       '<input type="file" id="importFile" accept="application/json" style="display:none">';
   }
 
@@ -1862,6 +1911,8 @@
       case 'export':exportJSON();break;
       case 'import':$('#importFile').click();break;
       case 'reset':resetData();break;
+      case 'cloudPush':cloudSaveInputs();cloudPush();break;
+      case 'cloudPull':cloudSaveInputs();cloudPull();break;
     }
   }
   function exportJSON(){
