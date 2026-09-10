@@ -335,12 +335,21 @@
       });
     }
   }
+  function migrateTraffic(d){
+    if(!d||!d.traffic)return;
+    d.traffic.forEach(function(r){
+      if(!r.cend && r.cycle){
+        var ce=cycleEnd(r.cycle,r.cstart);
+        if(ce)r.cend=ce;
+      }
+    });
+  }
   function load(){
     try{var s=localStorage.getItem(KEY);if(s){
       var d=JSON.parse(s);
       // 别人用的链接：数据版本不匹配时自动重置，避免旧缓存导致新选题/配色不生效
       if(IS_GUEST && (d.version|0)!==GUEST_DATA_VERSION){ return seed(); }
-      migrateAccounts(d);return d;
+      migrateAccounts(d);migrateTraffic(d);return d;
     }}catch(e){}
     return seed();
   }
@@ -401,6 +410,7 @@
   }
   function bindBackup(){cloudSaveInputs();var ct=$('#cloudToken'),cg=$('#cloudGist'),ca=$('#cloudAuto');if(ct)ct.addEventListener('change',cloudSaveInputs);if(cg)cg.addEventListener('change',cloudSaveInputs);if(ca)ca.addEventListener('change',cloudSaveInputs);}
   APP.store={get:function(){return APP.data;},save:save};
+  window.APP=APP;
 
   /* ---------- 工具 ---------- */
   function uid(){return 'id'+Date.now().toString(36)+Math.random().toString(36).slice(2,7);}
@@ -445,7 +455,7 @@
   }
   function daysBetween(a,b){return Math.round((new Date(b)-new Date(a))/86400000);}
   function toast(msg){var t=$('#toast');t.textContent=msg;t.classList.add('show');clearTimeout(APP._tt);APP._tt=setTimeout(function(){t.classList.remove('show');},2200);}
-  // 统计月度归属：每月5号~次月5号为一个周期（如 8.5–9.5=p_0805）；<5号归上月
+  // 旧月度周期函数（每月5号~次月5号），已弃用；保留用于兼容旧数据中的 periodId
   function pidOf(dateStr){
     var d=new Date(dateStr+'T00:00:00');var dd=d.getDate();
     var m=d.getMonth()+1;
@@ -503,7 +513,7 @@
       {id:'p_0805',start:'2026-08-05',end:'2026-09-05',note:'当前周期'}
     ];
     // 引流数据（按统计周期/阶段录入，不按某一天）。官号=加好友，自营/兼职=进群。来源：工作记录.xlsx 全量
-    function T(cycle,cstart,accId,n){var off=(accId==='acc_off');return {id:uid(),periodId:pidOf(cstart),cycle:cycle,cstart:cstart,accountId:accId,join:off?0:n,addFriend:off?n:0,note:''};}
+    function T(cycle,cstart,accId,n){var off=(accId==='acc_off');var cend=cycleEnd(cycle,cstart);return {id:uid(),periodId:monthKeyToPid(calMonthOf(cend)),cycle:cycle,cstart:cstart,cend:cend,accountId:accId,join:off?0:n,addFriend:off?n:0,note:''};}
     var traffic=[
       T('5.21-6.5','2026-05-21','acc_off',69),T('5.21-6.5','2026-05-21','acc_hengbai',141),T('5.21-6.5','2026-05-21','acc_xt',97),T('5.21-6.5','2026-05-21','acc_ddy',16),T('5.21-6.5','2026-05-21','acc_gc',7),T('5.21-6.5','2026-05-21','acc_qing',11),T('5.21-6.5','2026-05-21','acc_tk',17),
       T('6.5-6.14','2026-06-05','acc_off',91),T('6.5-6.14','2026-06-05','acc_hengbai',90),T('6.5-6.14','2026-06-05','acc_xt',51),T('6.5-6.14','2026-06-05','acc_ddy',24),T('6.5-6.14','2026-06-05','acc_qing',4),T('6.5-6.14','2026-06-05','acc_tk',2),
@@ -764,30 +774,44 @@
     var end=yr2+'-'+pad2(next)+'-05';
     return {id:pid,start:start,end:end,note:'自动周期'};
   }
-  // 当前统计月度 key（YYYY-MM，跟随 today）：每月5号~次月5号为一个统计月度
-  function currentMonthKey(){return pidToMonthKey(pidOf(today()));}
-  // 当前统计月度对应的 period id（today 落在哪个 5号~次月5号 区间）
-  function currentMonthPid(){
-    var t=today();
-    var cps=APP.data.periods.filter(function(p){return t>=p.start && t<p.end;});
-    if(cps.length)return cps[0].id;
-    return pidOf(t);
+  // 月度 key（YYYY-MM）对应自然月起止（1号~次月1号）
+  function monthRange(mk){
+    if(!mk||mk.length<7)return null;
+    var y=parseInt(mk.substring(0,4),10),m=parseInt(mk.substring(5,7),10);
+    var start=y+'-'+pad2(m)+'-01';
+    var nm=m+1,ny=y; if(nm>12){nm=1;ny++;}
+    return {start:start,end:ny+'-'+pad2(nm)+'-01'};
   }
-  // 月度 key（YYYY-MM）→ period id（按该月5号起算的月度周期）
-  function monthKeyToPid(mk){
-    var m=parseInt(mk.substring(5,7),10);
-    return 'p_'+pad2(m)+'05';
-  }
-  // period id（p_MM05）→ 月度 key（YYYY-MM），年份取自该周期起始日（保证下拉与筛选同一套周期逻辑）
+  // 当前自然月 key（YYYY-MM）
+  function currentMonthKey(){return calMonthOf(today());}
+  // 保留旧函数名用于驾驶舱等已有调用，但内部按自然月
+  function currentMonthPid(){return monthKeyToPid(currentMonthKey());}
+  function monthKeyToPid(mk){return 'p_'+mk.replace(/-/g,'');}
   function pidToMonthKey(pid){
+    if(String(pid).match(/^p_\d{6}$/))return pid.substring(2,6)+'-'+pid.substring(6,8);
     var mm=parseInt(pid.substring(2,4),10);
     var p=getPeriod(pid);
     var yr=p?parseInt(p.start.substring(0,4),10):2026;
     return yr+'-'+pad2(mm);
   }
-  // 该记录是否落在某统计周期内（按 cstart 起始日判断）
-  function inPeriod(r,p){if(!p)return false;var c=r.cend||r.cstart||cycleStart(r.cycle);return c>=p.start&&c<p.end;}
-  function periodRecs(pid){var p=getPeriod(pid);return APP.data.traffic.filter(function(r){return inPeriod(r,p);});}
+  // 单条记录归属的月份 key（按结束日期优先；无结束日期则尝试从 cycle 解析，再回退 cstart）
+  function recMonthKey(r){var c=r.cend||cycleEnd(r.cycle,r.cstart)||r.cstart||cycleStart(r.cycle);return c?calMonthOf(c):'';}
+  // 记录是否落在某自然月内
+  function inPeriod(r,p){if(!p)return false;var c=r.cend||cycleEnd(r.cycle,r.cstart)||r.cstart||cycleStart(r.cycle);return c>=p.start&&c<p.end;}
+  function periodRecs(pid){var mk=pidToMonthKey(pid);var mr=monthRange(mk);if(!mr)return APP.data.traffic.filter(function(r){return recMonthKey(r)===mk;});return APP.data.traffic.filter(function(r){return inPeriod(r,mr);});}
+  function monthRecs(mk){var mr=monthRange(mk);if(!mr)return APP.data.traffic.filter(function(r){return recMonthKey(r)===mk;});return APP.data.traffic.filter(function(r){return inPeriod(r,mr);});}
+  function monthSummary(mk){
+    var recs=monthRecs(mk);
+    var off={join:0},self={join:0},pt={join:0};
+    recs.forEach(function(r){
+      var a=accById(r.accountId); if(!a)return; var j=recNum(r);
+      if(a.type==='official')off.join+=j;
+      else if(a.type==='self')self.join+=j;
+      else pt.join+=j;
+    });
+    return {off:{join:off.join},self:{join:self.join},pt:{join:pt.join},total:off.join+self.join+pt.join,
+      addFriend:recs.reduce(function(s,r){return s+(Number(r.addFriend)||0);},0)};
+  }
   // 按当前周期汇总三类引流实际人数
   // 按当前周期汇总三类引流实际人数
   function periodSummary(pid){
@@ -841,6 +865,18 @@
     if(m)return '2026-'+pad2(+m[1])+'-'+pad2(+m[2]);
     return today();
   }
+  // 从周期标签解析结束日期（如 "8.31-9.2" / "8.31 - 9.2"），失败则回退 cstart
+  function cycleEnd(cycle,cstart){
+    var s=String(cycle||'').trim();
+    var parts=s.match(/(\d{1,2})\.(\d{1,2})\s*[-~]\s*(\d{1,2})\.(\d{1,2})/);
+    if(parts){
+      var sy=String(cstart||'').substring(0,4)||new Date().getFullYear();
+      var sm=parseInt(parts[1],10),em=parseInt(parts[3],10),ed=parseInt(parts[4],10);
+      var ey=parseInt(sy,10); if(em<sm)ey++;
+      return ey+'-'+pad2(em)+'-'+pad2(ed);
+    }
+    return cstart||today();
+  }
 
   /* ---------- 导航 ---------- */
   var NAV=[
@@ -877,7 +913,7 @@
   function pageSub(v){
     if(v==='dashboard')return '今日/本周待处理 + 运营数据总览';
     if(v==='content')return '选题库 · 写稿 · 发布 · 复盘';
-    if(v==='traffic')return '按周记录（每月5号~次月5号为一统计月度），自动汇总引流人数';
+    if(v==='traffic')return '按周记录（按结束日期所在自然月归类），自动汇总引流人数';
     if(v==='private')return '群 → 一对一加好友(转私域深度)';
     if(v==='materials')return '外化资料库 + 资料文件';
     if(v==='accounts')return '账号档案 · 类型/持有者/负责人/人设/状态';
@@ -904,15 +940,14 @@
 
   /* ---------- 驾驶舱 ---------- */
   function viewDashboard(){
-    var pid=currentMonthPid();
-    var p=getPeriod(pid);
-    var sc=periodSummary(pid);
-    var ptSub=parttimeSubtotal(pid);
+    var mk=currentMonthKey();
+    var sc=monthSummary(mk);
+    var ptSub=parttimeSubtotal(monthKeyToPid(mk));
     var exam=APP.data.meta.examDate, dn=daysBetween(today(),exam);
     // 待处理
     var ideas=APP.data.topics.filter(function(t){return t.status==='idea'||t.status==='writing';});
     var published=APP.data.topics.filter(function(t){return t.status==='published';}).length;
-    var cyclesDone={};periodRecs(pid).forEach(function(r){cyclesDone[r.cycle]=1;});
+    var cyclesDone={};monthRecs(mk).forEach(function(r){cyclesDone[r.cycle]=1;});
     var weekCount=Object.keys(cyclesDone).length;
     var groupsNeed=APP.data.groups.filter(function(g){return !g.addFriend||g.addFriend===0;}).length;
     var focus='';
@@ -936,20 +971,21 @@
       stat('月度总引流人数','total',grandJoin+' 人','三类账号实际引流合计')+
       '</div>';
 
-    // 趋势（按统计周期，各号引流）
+    // 趋势（按自然月，各号引流）
+    var mpid=monthKeyToPid(mk);
     var weeks=Object.keys(cyclesDone).sort(function(a,b){return cycleStart(a)<cycleStart(b)?-1:1;});
     var trend=lineChart(weeks,[
-      {name:'官方号',color:CH.off,vals:weeks.map(function(w){return sumCycle(pid,w,'official');})},
-      {name:'自营号',color:CH.self,vals:weeks.map(function(w){return sumCycle(pid,w,'self');})},
-      {name:'兼职号',color:CH.pt,vals:weeks.map(function(w){return sumCycle(pid,w,'parttime');})}    ]);
+      {name:'官方号',color:CH.off,vals:weeks.map(function(w){return sumCycle(mpid,w,'official');})},
+      {name:'自营号',color:CH.self,vals:weeks.map(function(w){return sumCycle(mpid,w,'self');})},
+      {name:'兼职号',color:CH.pt,vals:weeks.map(function(w){return sumCycle(mpid,w,'parttime');})}    ]);
     var bar=barChart(['官方号','自营号','兼职号'],[sc.off.join,sc.self.join,sc.pt.join],[CH.off,CH.self,CH.pt]);
 
     return focus+
       '<div class="mb">'+stats+'</div>'+
       '<div class="grid g2">'+
-        '<div class="card"><h3>'+I.chart+'本月度各号引流趋势（按周）</h3><div class="chartbox">'+trend+'</div></div>'+
-        '<div class="card"><h3>'+I.chart+'本月度三类引流对比</h3><div class="chartbox">'+bar+'</div>'+
-          '<div class="kv"><span class="muted">周期</span><b>'+(p?esc(p.start)+' ~ '+esc(p.end):'-')+'</b></div>'+
+        '<div class="card"><h3>'+I.chart+'本月各号引流趋势（按周）</h3><div class="chartbox">'+trend+'</div></div>'+
+        '<div class="card"><h3>'+I.chart+'本月三类引流对比</h3><div class="chartbox">'+bar+'</div>'+
+          '<div class="kv"><span class="muted">月份</span><b>'+mk.substring(0,4)+'年'+Number(mk.substring(5))+'月</b></div>'+
         '</div>'+
       '</div>'+
       '<div class="grid g2 mt">'+
@@ -1202,16 +1238,19 @@
   function heatData(range){
     var cycles=cycleList();
     if(range==='week'){
-      // 跟随当前选中的统计月度（tfMonth），取该月度内的每周数据
+      // 跟随当前选中的自然月（tfMonth），取该月内的每周数据
       var mKey=APP.state.tfMonth||currentMonthKey();
-      var mPid=(mKey==='all')?APP.data.meta.currentPeriod:monthKeyToPid(mKey);
-      var p=getPeriod(mPid);
-      var inP=cycles.filter(function(c){return inPeriod({cstart:c.cstart,cend:c.cend},p);});
-      return {cells:inP,label:'本月度各周'};
+      if(mKey==='all'){
+        var allKeys={};cycles.forEach(function(c){var k=c.cend?calMonthOf(c.cend):calMonthOf(c.cstart);if(k)allKeys[k]=1;});
+        var sortedKeys=Object.keys(allKeys).sort().reverse(); mKey=sortedKeys[0]||currentMonthKey();
+      }
+      var mr=monthRange(mKey);
+      var inP=cycles.filter(function(c){return inPeriod({cstart:c.cstart,cend:c.cend},mr);});
+      return {cells:inP,label:'本月各周'};
     }
     if(range==='month'){
       var mm={};
-      cycles.forEach(function(c){var k=c.cstart.substring(0,7);if(!mm[k])mm[k]={label:k,total:0,cstart:c.cstart};mm[k].total+=c.total;});
+      cycles.forEach(function(c){var k=c.cend?calMonthOf(c.cend):calMonthOf(c.cstart);if(!k)return;if(!mm[k])mm[k]={label:k,total:0,cstart:c.cstart};mm[k].total+=c.total;});
       var arr=Object.keys(mm).map(function(k){return mm[k];});
       arr.sort(function(a,b){return a.cstart<b.cstart?-1:1;});
       return {cells:arr,label:'按月聚合'};
@@ -1318,15 +1357,13 @@
   function viewTraffic(){
     var mKey=APP.state.tfMonth;
     var isAll=(mKey==='all');
-    // 先按统计月度周期过滤（每月5号~次月5号），后续头部/图表/明细统一用这套数据
+    // 按结束日期所在自然月过滤，后续头部/图表/明细统一用这套数据
     var allTraffic=APP.data.traffic;
     var monthFiltered=allTraffic;
     if(!isAll){
-      var mp=getPeriod(monthKeyToPid(mKey));
-      if(mp){monthFiltered=monthFiltered.filter(function(r){return inPeriod(r,mp);});}
-      else{ // 对应统计周期在库中不存在时，按自然月（cstart 的 YYYY-MM）兜底，避免整列被筛空
-        monthFiltered=monthFiltered.filter(function(r){var c=r.cend||r.cstart||cycleStart(r.cycle);return c&&c.substring(0,7)===mKey;});
-      }
+      var mr=monthRange(mKey);
+      if(mr){monthFiltered=monthFiltered.filter(function(r){return inPeriod(r,mr);});}
+      else{monthFiltered=monthFiltered.filter(function(r){return recMonthKey(r)===mKey;});}
     }
     // 从过滤后数据汇总实际人数（保证头部卡片=柱状图=明细表，三处口径一致）
     var sc=isAll?allTimeSummary():summaryFromRecs(monthFiltered);
@@ -1338,18 +1375,17 @@
       stat('兼职号·进群','parttime',sc.pt.join+' 人','实际进群人数')+
       stat('总引流人数','total',grandJoin+' 人',isAll?'全部月度':mLabel)+
       '</div>';
-    // 月度选择（按月度周期：用户选"8月"=看8月5号~9月5号的记录）
+    // 月度选择（按结束日期所在自然月归类）
     var allTraffic=APP.data.traffic;
-    var mset={};allTraffic.forEach(function(r){var cs=r.cend||r.cstart||cycleStart(r.cycle);mset[pidToMonthKey(pidOf(cs))]=1;});
+    var mset={};allTraffic.forEach(function(r){var k=recMonthKey(r);if(k)mset[k]=1;});
     var months=Object.keys(mset).sort().reverse();
     var curMK=currentMonthKey();if(!mset[curMK]){months.unshift(curMK);}
     var monthOpts='<option value="all"'+(isAll?' selected':'')+'>全部月度</option>'+
       months.map(function(m){return '<option value="'+m+'"'+(mKey===m?' selected':'')+'>'+m.substring(0,4)+'年'+Number(m.substring(5))+'月</option>';}).join('');
     var periodInfo='<div class="card mb">'+
-      '<div class="row" style="flex-wrap:wrap;gap:10px;margin-bottom:12px"><div class="body" style="flex:1;min-width:220px"><b>统计月度：</b>'+
+      '<div class="row" style="flex-wrap:wrap;gap:10px;margin-bottom:12px"><div class="body" style="flex:1;min-width:220px"><b>统计月份：</b>'+
         '<select id="tfMonth" style="width:auto;display:inline-block">'+monthOpts+'</select>'+
-        '　<span class="muted small">（按月度周期：每月5号~次月5号）</span></div>'+
-        '<button class="btn sm ghost" data-act="periodEdit">调整月度边界</button></div>'+
+        '　<span class="muted small">（按结束日期所在自然月归类）</span></div></div>'+
       '<div class="row" style="gap:8px;flex-wrap:wrap">'+
         smini('官方号',sc.off.join,'var(--official)')+
         smini('自营号',sc.self.join,'var(--self)')+
@@ -1871,7 +1907,7 @@
         var startISO=$('#tr_start').value, endISO=$('#tr_end').value||$('#tr_start').value;
         if(!startISO){toast('请选择起始日期');break;}
         var cycle=formatMD(startISO)+(endISO&&endISO!==startISO?(' - '+formatMD(endISO)):'');
-        var cstart=startISO, cend=endISO||startISO, pid=pidOf(cend), note=$('#tr_note').value;
+        var cstart=startISO, cend=endISO||startISO, pid=monthKeyToPid(calMonthOf(cend)), note=$('#tr_note').value;
         // 编辑单条：直接更新该账号记录
         if(id){
           var r=find(APP.data.traffic,id);
@@ -1989,8 +2025,9 @@
       if(t.id==='matFile'){var fl=t.files;if(!fl||!fl.length)return;handleFiles(fl);t.value='';}
     });
     renderNav();
-    var cpid=currentMonthPid();var cp=getPeriod(cpid);
-    $('#periodPill').textContent='本月度 '+(cp?(cp.start+'~'+cp.end):'-');
+    var cmk=currentMonthKey();
+    $('#periodPill').textContent='本月 '+cmk.substring(0,4)+'年'+Number(cmk.substring(5))+'月';
+    APP.navigate=navigate;APP.render=render;
     navigate('dashboard');
   }
   init();
