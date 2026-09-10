@@ -1460,7 +1460,8 @@
     var typeRank={official:0,self:1,parttime:2};
     accs=accs.slice().sort(function(a,b){
       if(a.active!==b.active)return a.active?-1:1;
-      return (typeRank[a.type]||9)-(typeRank[b.type]||9);
+      var ra=typeRank[a.type],rb=typeRank[b.type];
+      return (ra==null?9:ra)-(rb==null?9:rb);
     });
     var types=[['all','全部'],['official','官方号'],['self','自营号'],['parttime','兼职号']];
     var typeBar='<div class="tabbar mb">'+types.map(function(t){
