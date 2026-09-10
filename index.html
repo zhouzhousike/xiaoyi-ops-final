@@ -313,7 +313,10 @@
   /* ---------- 存储 ---------- */
   function migrateAccounts(d){
     if(!d||!d.accounts)return;
-    d.accounts.forEach(function(a){if(a.id==='acc_off'&&a.name==='宇天408计算机考研')a.name='小红书官号';});
+    d.accounts.forEach(function(a){
+      if(a.id==='acc_off'&&a.name==='宇天408计算机考研')a.name='小红书官号';
+      delete a.rate;
+    });
     if(!d.topicAuto)d.topicAuto={last:'',idx:0};
     // 若已有数据中完全没有 28 考研选题，自动从对应池补 8 条，避免旧缓存看不到 28
     var has28=(d.topics||[]).some(function(t){return (t.audience||'27')==='28';});
@@ -411,7 +414,7 @@
       });
       return {
         meta:{currentPeriod:'p_0805',examDate:'2026-12-26',examName:'27考研'},
-        accounts:[{id:'acc_off',name:'官方号',type:'official',rate:1,holder:'',owner:'',active:true,persona:'',note:''}],
+        accounts:[{id:'acc_off',name:'官方号',type:'official',holder:'',owner:'',active:true,persona:'',note:''}],
         periods:[{id:'p_0805',start:'2026-08-05',end:'2026-09-05',note:'当前周期'}],
         traffic:[], groups:[], materials:[], topics:gTopics, drafts:[], publishes:[], reviews:[], qa:[], files:[],
         topicAuto:{last:today(),idx:gInit},
@@ -419,18 +422,18 @@
       };
     }
     var accounts=[
-      {id:'acc_off',name:'小红书官号',type:'official',rate:3,holder:'小艺',owner:'小艺/蒋老师',active:true,persona:'官方主阵地',note:'官方号，引流分3倍，核心指标=加好友'},
-      {id:'acc_hengbai',name:'恒白',type:'self',rate:1,holder:'小艺',owner:'小艺',active:true,persona:'413分·408单科130分高分学长',note:'自营号主力军，核心指标=进群'},
-      {id:'acc_buling',name:'布灵布灵女王',type:'self',rate:1,holder:'小艺',owner:'小艺',active:false,persona:'自营号',note:'长期停更'},
-      {id:'acc_linYu',name:'临屿',type:'self',rate:1,holder:'小艺',owner:'小艺',active:false,persona:'自营号',note:'暂无量身定位，未发'},
-      {id:'acc_ddy',name:'ddy11',type:'parttime',rate:1,holder:'ddy11',owner:'小艺',active:true,persona:'413分高分上岸学长',note:'账号在其本人手中，负责人=小艺'},
-      {id:'acc_qing',name:'青椒',type:'parttime',rate:1,holder:'青椒',owner:'小艺',active:true,persona:'双非→双非·5个月急速上岸学姐',note:'账号在其本人手中，负责人=小艺'},
-      {id:'acc_wanzi',name:'开心章鱼小丸子',type:'parttime',rate:1,holder:'开心章鱼小丸子',owner:'小艺',active:true,persona:'二战·27考生',note:'账号在其本人手中，负责人=小艺'},
-      {id:'acc_xt',name:'小t',type:'parttime',rate:1,holder:'小t',owner:'小艺',active:false,persona:'高分学长学姐',note:'引流质量问题，已停用'},
-      {id:'acc_gc',name:'古城问花',type:'parttime',rate:1,holder:'古城问花',owner:'小艺',active:false,persona:'高分学长学姐',note:'转自营号，已停'},
-      {id:'acc_tk',name:'偷看你一秒',type:'parttime',rate:1,holder:'偷看你一秒',owner:'小艺',active:false,persona:'高分学长学姐',note:'6月暂停'}
+      {id:'acc_off',name:'小红书官号',type:'official',holder:'小艺',owner:'小艺/蒋老师',active:true,persona:'官方主阵地',note:'官方号，核心指标=加好友'},
+      {id:'acc_hengbai',name:'恒白',type:'self',holder:'小艺',owner:'小艺',active:true,persona:'413分·408单科130分高分学长',note:'自营号主力军，核心指标=进群'},
+      {id:'acc_buling',name:'布灵布灵女王',type:'self',holder:'小艺',owner:'小艺',active:false,persona:'自营号',note:'长期停更'},
+      {id:'acc_linYu',name:'临屿',type:'self',holder:'小艺',owner:'小艺',active:false,persona:'自营号',note:'暂无量身定位，未发'},
+      {id:'acc_ddy',name:'ddy11',type:'parttime',holder:'ddy11',owner:'小艺',active:true,persona:'413分高分上岸学长',note:'账号在其本人手中，负责人=小艺'},
+      {id:'acc_qing',name:'青椒',type:'parttime',holder:'青椒',owner:'小艺',active:true,persona:'双非→双非·5个月急速上岸学姐',note:'账号在其本人手中，负责人=小艺'},
+      {id:'acc_wanzi',name:'开心章鱼小丸子',type:'parttime',holder:'开心章鱼小丸子',owner:'小艺',active:true,persona:'二战·27考生',note:'账号在其本人手中，负责人=小艺'},
+      {id:'acc_xt',name:'小t',type:'parttime',holder:'小t',owner:'小艺',active:false,persona:'高分学长学姐',note:'引流质量问题，已停用'},
+      {id:'acc_gc',name:'古城问花',type:'parttime',holder:'古城问花',owner:'小艺',active:false,persona:'高分学长学姐',note:'转自营号，已停'},
+      {id:'acc_tk',name:'偷看你一秒',type:'parttime',holder:'偷看你一秒',owner:'小艺',active:false,persona:'高分学长学姐',note:'6月暂停'}
     ];
-    // 业绩考核周期（每月5号~次月5号），覆盖已有数据区间
+    // 统计月度周期（每月5号~次月5号），覆盖已有数据区间
     var periods=[
       {id:'p_0505',start:'2026-05-05',end:'2026-06-05'},
       {id:'p_0605',start:'2026-06-05',end:'2026-07-05'},
@@ -686,15 +689,6 @@
   }
   // 单条记录的"引流数"：官号=加好友，自营/兼职=进群
   function recNum(rec){var a=accById(rec.accountId);if(!a)return 0;return a.type==='official'?(Number(rec.addFriend)||0):(Number(rec.join)||0);}
-  function scoreOf(rec){var a=accById(rec.accountId);if(!a)return 0;return recNum(rec)*a.rate;}
-  // 某类账号的倍率显示文案：同倍率显示 ×N；异构则显示"按账号倍率"（加权人数计算始终按各账号真实倍率）
-  function rateLabelOf(type){
-    var accs=APP.data.accounts.filter(function(a){return a.type===type;});
-    if(!accs.length)return '按账号倍率';
-    var rs=accs.map(function(a){return Number(a.rate||1);});
-    var allSame=rs.every(function(r){return r===rs[0];});
-    return allSame?('×'+rs[0]):'按账号倍率';
-  }
   function getPeriod(pid){return APP.data.periods.filter(function(x){return x.id===pid;})[0];}
   // 当前统计月度 key（YYYY-MM，跟随 today）：每月5号~次月5号为一个统计月度
   function currentMonthKey(){return pidToMonthKey(pidOf(today()));}
@@ -717,23 +711,23 @@
     var yr=p?parseInt(p.start.substring(0,4),10):2026;
     return yr+'-'+pad2(mm);
   }
-  // 该记录是否落在某考核周期内（按 cstart 起始日判断）
+  // 该记录是否落在某统计周期内（按 cstart 起始日判断）
   function inPeriod(r,p){if(!p)return false;var c=r.cstart||cycleStart(r.cycle);return c>=p.start&&c<p.end;}
   function periodRecs(pid){var p=getPeriod(pid);return APP.data.traffic.filter(function(r){return inPeriod(r,p);});}
-  // 按当前周期汇总三类引流 + 加权人数
-  function periodScore(pid){
+  // 按当前周期汇总三类引流实际人数
+  // 按当前周期汇总三类引流实际人数
+  function periodSummary(pid){
     var recs=periodRecs(pid);
-    var off={join:0,score:0},self={join:0,score:0},pt={join:0,score:0};
+    var off={join:0},self={join:0},pt={join:0};
     recs.forEach(function(r){
       var a=accById(r.accountId); if(!a)return;
       var j=recNum(r);
-      if(a.type==='official'){off.join+=j;off.score+=j*a.rate;}
-      else if(a.type==='self'){self.join+=j;self.score+=j*a.rate;}
-      else {pt.join+=j;pt.score+=j*a.rate;}
+      if(a.type==='official')off.join+=j;
+      else if(a.type==='self')self.join+=j;
+      else pt.join+=j;
     });
-    return {off:rd(off),self:rd(self),pt:rd(pt),total:Math.round(off.score+self.score+pt.score),
+    return {off:{join:off.join},self:{join:self.join},pt:{join:pt.join},total:off.join+self.join+pt.join,
       addFriend:recs.reduce(function(s,r){return s+(Number(r.addFriend)||0);},0)};
-    function rd(o){o.score=Math.round(o.score);return o;}
   }
   // 兼职小计（周期内所有兼职号进群合计）
   function parttimeSubtotal(pid){
@@ -741,30 +735,28 @@
       .reduce(function(s,r){return s+(Number(r.join)||0);},0);
   }
   // 全部月度汇总（明细选「全部月度」时）
-  function allTimeScore(){
-    var off={join:0,score:0},self={join:0,score:0},pt={join:0,score:0};
+  function allTimeSummary(){
+    var off={join:0},self={join:0},pt={join:0};
     APP.data.traffic.forEach(function(r){
       var a=accById(r.accountId);if(!a)return;var j=recNum(r);
-      if(a.type==='official'){off.join+=j;off.score+=j*a.rate;}
-      else if(a.type==='self'){self.join+=j;self.score+=j*a.rate;}
-      else {pt.join+=j;pt.score+=j*a.rate;}
+      if(a.type==='official')off.join+=j;
+      else if(a.type==='self')self.join+=j;
+      else pt.join+=j;
     });
-    return {off:rd(off),self:rd(self),pt:rd(pt),total:Math.round(off.score+self.score+pt.score),
+    return {off:{join:off.join},self:{join:self.join},pt:{join:pt.join},total:off.join+self.join+pt.join,
       addFriend:APP.data.traffic.reduce(function(s,r){return s+(Number(r.addFriend)||0);},0)};
-    function rd(o){o.score=Math.round(o.score);return o;}
   }
-  // 从任意记录数组计算三类加权人数（用于日历月份筛选后的统计）
-  function scoreFromRecs(recs){
-    var off={join:0,score:0},self={join:0,score:0},pt={join:0,score:0};
+  // 从任意记录数组计算三类实际人数（用于日历月份筛选后的统计）
+  function summaryFromRecs(recs){
+    var off={join:0},self={join:0},pt={join:0};
     recs.forEach(function(r){
       var a=accById(r.accountId); if(!a)return; var j=recNum(r);
-      if(a.type==='official'){off.join+=j;off.score+=j*a.rate;}
-      else if(a.type==='self'){self.join+=j;self.score+=j*a.rate;}
-      else {pt.join+=j;pt.score+=j*a.rate;}
+      if(a.type==='official')off.join+=j;
+      else if(a.type==='self')self.join+=j;
+      else pt.join+=j;
     });
-    return {off:rd(off),self:rd(self),pt:rd(pt),total:Math.round(off.score+self.score+pt.score),
+    return {off:{join:off.join},self:{join:self.join},pt:{join:pt.join},total:off.join+self.join+pt.join,
       addFriend:recs.reduce(function(s,r){return s+(Number(r.addFriend)||0);},0)};
-    function rd(o){o.score=Math.round(o.score);return o;}
   }
   // 解析统计周期标签的起始日（用于周期归属与排序）。'8.5-8.9'->2026-08-05；也兼容完整日期
   function cycleStart(cycle){
@@ -809,9 +801,9 @@
     window.scrollTo(0,0);
   }
   function pageSub(v){
-    if(v==='dashboard')return '今日/本周待处理 + 业绩总览';
+    if(v==='dashboard')return '今日/本周待处理 + 运营数据总览';
     if(v==='content')return '选题库 · 写稿 · 发布 · 复盘';
-    if(v==='traffic')return '按周记录（每月5号~次月5号为一统计月度），自动算业绩分';
+    if(v==='traffic')return '按周记录（每月5号~次月5号为一统计月度），自动汇总引流人数';
     if(v==='private')return '群 → 一对一加好友(转私域深度)';
     if(v==='materials')return '外化资料库 + 资料文件';
     if(v==='accounts')return '账号档案 · 类型/持有者/负责人/人设/状态';
@@ -839,7 +831,7 @@
   function viewDashboard(){
     var pid=currentMonthPid();
     var p=APP.data.periods.filter(function(x){return x.id===pid;})[0];
-    var sc=periodScore(pid);
+    var sc=periodSummary(pid);
     var ptSub=parttimeSubtotal(pid);
     var exam=APP.data.meta.examDate, dn=daysBetween(today(),exam);
     // 待处理
@@ -863,10 +855,10 @@
     var grandJoin=sc.off.join+sc.self.join+sc.pt.join;
     var stats=''+
       '<div class="grid g4">'+
-      stat('官方号引流','off',sc.off.join+' 人',sc.off.score+' 人（'+rateLabelOf('official')+'）')+
-      stat('自营号引流','self',sc.self.join+' 人',sc.self.score+' 人（'+rateLabelOf('self')+'）')+
-      stat('兼职号引流','parttime',sc.pt.join+' 人',sc.pt.score+' 人（'+rateLabelOf('parttime')+'）')+
-      stat('月度总引流人数','total',grandJoin+' 人','加权合计 '+sc.total+' 人')+
+      stat('官方号引流','off',sc.off.join+' 人','统计口径：加好友')+
+      stat('自营号引流','self',sc.self.join+' 人','统计口径：进群')+
+      stat('兼职号引流','parttime',sc.pt.join+' 人','统计口径：进群')+
+      stat('月度总引流人数','total',grandJoin+' 人','三类账号实际引流合计')+
       '</div>';
 
     // 趋势（按统计周期，各号引流）
@@ -891,11 +883,11 @@
       '</div>';
   }
   function stat(k,cls,v,x){return '<div class="stat '+cls+'"><div class="k">'+k+'</div><div class="v">'+v+'</div><div class="x">'+x+'</div></div>';}
-  // 周期汇总小卡：人数 + 对应加权人数（加权人数可为空字符串）
-  function smini(k,v,score,color,unit){
+  // 周期汇总小卡：只显示实际人数
+  function smini(k,v,color,unit){
     if(!unit)unit=' 人';
     return '<div class="smini" style="border-left:3px solid '+color+'"><div class="k">'+k+'</div>'+
-      '<div class="v">'+v+unit+'</div>'+(score!==''?'<div class="x">'+score+' 人</div>':'')+'</div>';
+      '<div class="v">'+v+unit+'</div></div>';
   }
   function sumCycle(pid,cycle,type){
     return periodRecs(pid).filter(function(r){var a=accById(r.accountId);return r.cycle===cycle&&a&&a.type===type;})
@@ -1115,7 +1107,7 @@
       '<div class="row" style="justify-content:flex-end"><button class="btn ghost" data-x>取消</button><button class="btn" data-act="revSave" data-id="'+(rec.id||'')+'">保存</button></div>');
   }
 
-  /* ---------- 引流数据 + 业绩 ---------- */
+  /* ---------- 引流数据 ---------- */
   function pad2(n){return (n<10?'0':'')+n;}
   // 完整日期 -> 月.日（如 2026-08-05 -> 8.5），用于周期标签
   function formatMD(iso){var p=String(iso||'').split('-');if(p.length<3)return iso;return (parseInt(p[1],10))+'.'+(parseInt(p[2],10));}
@@ -1217,7 +1209,7 @@
     }
     // 图例改为 SVG 外独立 HTML 行，彻底避免与坐标轴/标签重叠
     var legend='<div style="display:flex;gap:18px;justify-content:center;margin-top:6px;font-size:12px;color:'+CH.txt+'"><span><i style="display:inline-block;width:10px;height:10px;border-radius:50%;background:'+CH.off+';margin-right:5px;vertical-align:middle"></i>官方号</span><span><i style="display:inline-block;width:10px;height:10px;border-radius:50%;background:'+CH.self+';margin-right:5px;vertical-align:middle"></i>自营号</span><span><i style="display:inline-block;width:10px;height:10px;border-radius:50%;background:'+CH.pt+';margin-right:5px;vertical-align:middle"></i>兼职号</span></div>';
-    return '<div class="card"><h3 style="margin:0 0 12px 0;font-size:14px">📈 本月度各号导引流趋势（按周）</h3>'+
+    return '<div class="card"><h3 style="margin:0 0 12px 0;font-size:14px">📈 本月度各号引流趋势（按周）</h3>'+
       '<svg viewBox="0 0 '+W+' '+H+'" style="width:100%;height:auto;display:block">'+yGrid+yLabels+
       lines+dots+xLabels+'</svg>'+legend+'</div>';
   }
@@ -1255,14 +1247,14 @@
     var allTraffic=APP.data.traffic;
     var monthFiltered=allTraffic;
     if(!isAll){var mp=getPeriod(monthKeyToPid(mKey));monthFiltered=monthFiltered.filter(function(r){return inPeriod(r,mp);});}
-    // 从过滤后数据算分（保证头部卡片=柱状图=明细表，三处口径一致）
-    var sc=isAll?allTimeScore():scoreFromRecs(monthFiltered);
+    // 从过滤后数据汇总实际人数（保证头部卡片=柱状图=明细表，三处口径一致）
+    var sc=isAll?allTimeSummary():summaryFromRecs(monthFiltered);
     var mLabel=isAll?'全部月度':(mKey.substring(0,4)+'年'+Number(mKey.substring(5))+'月');
     var grandJoin=sc.off.join+sc.self.join+sc.pt.join;
     var head='<div class="grid g4 mb">'+
-      stat('官方号·加好友','official',sc.off.join+' 人',sc.off.score+' 人（'+rateLabelOf('official')+'）')+
-      stat('自营号·进群','self',sc.self.join+' 人',sc.self.score+' 人（'+rateLabelOf('self')+'）')+
-      stat('兼职号·进群','parttime',sc.pt.join+' 人',sc.pt.score+' 人（'+rateLabelOf('parttime')+'）')+
+      stat('官方号·加好友','official',sc.off.join+' 人','实际加好友人数')+
+      stat('自营号·进群','self',sc.self.join+' 人','实际进群人数')+
+      stat('兼职号·进群','parttime',sc.pt.join+' 人','实际进群人数')+
       stat('总引流人数','total',grandJoin+' 人',isAll?'全部月度':mLabel)+
       '</div>';
     // 月度选择（按月度周期：用户选"8月"=看8月5号~9月5号的记录）
@@ -1278,11 +1270,10 @@
         '　<span class="muted small">（按月度周期：每月5号~次月5号）</span></div>'+
         '<button class="btn sm ghost" data-act="periodEdit">调整月度边界</button></div>'+
       '<div class="row" style="gap:8px;flex-wrap:wrap">'+
-        smini('官方号',sc.off.join,sc.off.score,'var(--official)')+
-        smini('自营号',sc.self.join,sc.self.score,'var(--self)')+
-        smini('兼职号',sc.pt.join,sc.pt.score,'var(--parttime)')+
-        smini('三类合计人数',grandJoin,'',CH.off)+
-        smini('三类合计加权人数',sc.total,'',CH.txt,' 人')+
+        smini('官方号',sc.off.join,'var(--official)')+
+        smini('自营号',sc.self.join,'var(--self)')+
+        smini('兼职号',sc.pt.join,'var(--parttime)')+
+        smini('三类合计人数',grandJoin,'var(--ink)')+
       '</div></div>';
     // 明细筛选：月度（日历月份）→ 周（级联该月各周）→ 账号（monthFiltered 已在函数开头定义）
     var fP=APP.state.tfPeriod;
@@ -1342,7 +1333,7 @@
       '</div>'+
       '<div style="overflow:auto"><table><thead><tr><th>周</th><th>账号</th><th>引流数</th><th>负责人</th><th>账号持有者</th><th>操作</th></tr></thead><tbody>'+
       (rows||'<tr><td colspan="6" class="empty">暂无记录</td></tr>')+'</tbody></table></div>'+
-      '<div class="small muted mt">统计口径：官方号按「加好友」、自营号 / 兼职号按「进群」计算引流人数。为便于横向比较，系统会按账号类型设置倍率生成「加权人数」，但页面默认以实际引流人数为主要展示指标。不统计报班转化率。</div></div>';
+      '<div class="small muted mt">统计口径：官方号按「加好友」、自营号 / 兼职号按「进群」计算实际引流人数。总人数为各账号记录直接求和，不做倍率加权；如同一用户在不同账号重复出现，当前系统不会自动去重。不统计报班转化率。</div></div>';
     return head+periodInfo+renderHeat()+charts+table;
   }
 
@@ -1470,7 +1461,7 @@
         var cls=a.type+(a.active?'':' inactive');
         return '<div class="li" style="'+(a.active?'':'opacity:.6')+'">'+
           '<div class="body"><div class="t">'+esc(a.name)+' <span class="tag '+cls+'">'+(a.cat||typeLabel(a.type))+'</span>'+(a.active?'':' <span class="muted small">· 停更</span>')+'</div>'+
-          '<div class="m">持有者 '+esc(a.holder||'-')+' · 负责人 '+esc(a.owner||'-')+' · 引流倍率 ×'+(a.rate||1)+'</div>'+
+          '<div class="m">持有者 '+esc(a.holder||'-')+' · 负责人 '+esc(a.owner||'-')+'</div>'+
           (a.persona?'<div class="m" style="color:#b45309">人设：'+esc(a.persona)+'</div>':'')+
           (a.note?'<div class="muted small">'+esc(a.note)+'</div>':'')+'</div>'+
           '<div class="acts"><button class="btn sm ghost" data-act="accEdit" data-id="'+a.id+'">'+I.edit+'</button>'+
@@ -1483,7 +1474,7 @@
     return map.map(function(p){return '<option value="'+p[0]+'"'+(p[0]===sel?' selected':'')+'>'+p[1]+'</option>';}).join('');
   }
   function accForm(rec){
-    rec=rec||{name:'',type:'parttime',cat:'兼职号',holder:'',owner:'',persona:'',rate:1,active:true,note:''};
+    rec=rec||{name:'',type:'parttime',cat:'兼职号',holder:'',owner:'',persona:'',active:true,note:''};
     var typeSel=rec.type==='official'?'official':(rec.type==='self'?'self':'parttime');
     var actSel=rec.active?'1':'0';
     openModal('<h3>'+(rec.id?'编辑账号':'新增账号')+'</h3>'+
@@ -1491,7 +1482,6 @@
       field('类型',sel('ac_type',accTypeOpts(typeSel)))+
       field('持有者',inp('ac_holder',rec.holder))+
       field('负责人',inp('ac_owner',rec.owner))+
-      field('引流倍率（×）',inp('ac_rate',rec.rate||1))+
       field('状态',sel('ac_active',opt(['1','0'],actSel)))+
       field('人设 / 简介',inp('ac_persona',rec.persona))+
       field('备注',inp('ac_note',rec.note))+
@@ -1836,7 +1826,7 @@
         else if(tv==='pt'){a.type='parttime';a.cat='兼职号';}
         else {a.type='parttime';a.cat='兼职号';}
         a.holder=$('#ac_holder').value;a.owner=$('#ac_owner').value;
-        a.rate=Number($('#ac_rate').value)||1;a.active=$('#ac_active').value==='1';
+        a.active=$('#ac_active').value==='1';
         a.persona=$('#ac_persona').value;a.note=$('#ac_note').value;
         if(!id)APP.data.accounts.unshift(a);save();closeModal();render();toast('已保存');break;}
       case 'matAdd':matForm();break;
