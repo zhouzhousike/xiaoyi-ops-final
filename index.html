@@ -675,7 +675,7 @@
     {title:'答疑闭环：问题不过夜',angle:'答疑SOP',subject:'通用',stage:'基础起步',pain:'问题堆积',audience:'28'}
   ];
 
-  /* ---------- 业绩考核积分引擎 ---------- */
+  /* ---------- 引流人数统计引擎 ---------- */
   function accById(id){var a=APP.data.accounts;for(var i=0;i<a.length;i++)if(a[i].id===id)return a[i];return null;}
   function typeLabel(t){if(t&&typeof t==='object')return t.cat||(t.type==='official'?'官方号':(t.type==='self'?'自营号':'兼职号'));var x=t;return x==='official'?'官方号':(x==='self'?'自营号':'兼职号');}
   function convertOwnerOf(name){
@@ -687,7 +687,7 @@
   // 单条记录的"引流数"：官号=加好友，自营/兼职=进群
   function recNum(rec){var a=accById(rec.accountId);if(!a)return 0;return a.type==='official'?(Number(rec.addFriend)||0):(Number(rec.join)||0);}
   function scoreOf(rec){var a=accById(rec.accountId);if(!a)return 0;return recNum(rec)*a.rate;}
-  // 某类账号的倍率显示文案：同倍率显示 ×N；异构则显示"按账号倍率"（分数计算始终按各账号真实倍率）
+  // 某类账号的倍率显示文案：同倍率显示 ×N；异构则显示"按账号倍率"（加权人数计算始终按各账号真实倍率）
   function rateLabelOf(type){
     var accs=APP.data.accounts.filter(function(a){return a.type===type;});
     if(!accs.length)return '按账号倍率';
@@ -720,7 +720,7 @@
   // 该记录是否落在某考核周期内（按 cstart 起始日判断）
   function inPeriod(r,p){if(!p)return false;var c=r.cstart||cycleStart(r.cycle);return c>=p.start&&c<p.end;}
   function periodRecs(pid){var p=getPeriod(pid);return APP.data.traffic.filter(function(r){return inPeriod(r,p);});}
-  // 按当前周期汇总三类引流 + 分数
+  // 按当前周期汇总三类引流 + 加权人数
   function periodScore(pid){
     var recs=periodRecs(pid);
     var off={join:0,score:0},self={join:0,score:0},pt={join:0,score:0};
@@ -753,7 +753,7 @@
       addFriend:APP.data.traffic.reduce(function(s,r){return s+(Number(r.addFriend)||0);},0)};
     function rd(o){o.score=Math.round(o.score);return o;}
   }
-  // 从任意记录数组计算三类分数（用于日历月份筛选后的统计）
+  // 从任意记录数组计算三类加权人数（用于日历月份筛选后的统计）
   function scoreFromRecs(recs){
     var off={join:0,score:0},self={join:0,score:0},pt={join:0,score:0};
     recs.forEach(function(r){
@@ -860,12 +860,13 @@
       '<button class="btn sm" data-go="content">看选题</button></div>';
     focus+='</div>';
 
+    var grandJoin=sc.off.join+sc.self.join+sc.pt.join;
     var stats=''+
       '<div class="grid g4">'+
-      stat('官方号引流','off',sc.off.join+' 人',sc.off.score+' 分（'+rateLabelOf('official')+'）')+
-      stat('自营号引流','self',sc.self.join+' 人',sc.self.score+' 分（'+rateLabelOf('self')+'）')+
-      stat('兼职号引流','parttime',sc.pt.join+' 人',sc.pt.score+' 分（'+rateLabelOf('parttime')+'）')+
-      stat('月度总积分','total',sc.total+' 分','加好友 '+sc.addFriend+' 人')+
+      stat('官方号引流','off',sc.off.join+' 人',sc.off.score+' 人（'+rateLabelOf('official')+'）')+
+      stat('自营号引流','self',sc.self.join+' 人',sc.self.score+' 人（'+rateLabelOf('self')+'）')+
+      stat('兼职号引流','parttime',sc.pt.join+' 人',sc.pt.score+' 人（'+rateLabelOf('parttime')+'）')+
+      stat('月度总引流人数','total',grandJoin+' 人','加权合计 '+sc.total+' 人')+
       '</div>';
 
     // 趋势（按统计周期，各号引流）
@@ -890,11 +891,11 @@
       '</div>';
   }
   function stat(k,cls,v,x){return '<div class="stat '+cls+'"><div class="k">'+k+'</div><div class="v">'+v+'</div><div class="x">'+x+'</div></div>';}
-  // 周期汇总小卡：人数 + 对应分数（分数可为空字符串）
+  // 周期汇总小卡：人数 + 对应加权人数（加权人数可为空字符串）
   function smini(k,v,score,color,unit){
     if(!unit)unit=' 人';
     return '<div class="smini" style="border-left:3px solid '+color+'"><div class="k">'+k+'</div>'+
-      '<div class="v">'+v+unit+'</div>'+(score!==''?'<div class="x">'+score+' 分</div>':'')+'</div>';
+      '<div class="v">'+v+unit+'</div>'+(score!==''?'<div class="x">'+score+' 人</div>':'')+'</div>';
   }
   function sumCycle(pid,cycle,type){
     return periodRecs(pid).filter(function(r){var a=accById(r.accountId);return r.cycle===cycle&&a&&a.type===type;})
@@ -1257,11 +1258,12 @@
     // 从过滤后数据算分（保证头部卡片=柱状图=明细表，三处口径一致）
     var sc=isAll?allTimeScore():scoreFromRecs(monthFiltered);
     var mLabel=isAll?'全部月度':(mKey.substring(0,4)+'年'+Number(mKey.substring(5))+'月');
+    var grandJoin=sc.off.join+sc.self.join+sc.pt.join;
     var head='<div class="grid g4 mb">'+
-      stat('官方号·加好友','official',sc.off.join+' 人',sc.off.score+' 分（'+rateLabelOf('official')+'）')+
-      stat('自营号·进群','self',sc.self.join+' 人',sc.self.score+' 分（'+rateLabelOf('self')+'）')+
-      stat('兼职号·进群','parttime',sc.pt.join+' 人',sc.pt.score+' 分（'+rateLabelOf('parttime')+'）')+
-      stat('总积分','total',sc.total+' 分',isAll?'全部月度':mLabel)+
+      stat('官方号·加好友','official',sc.off.join+' 人',sc.off.score+' 人（'+rateLabelOf('official')+'）')+
+      stat('自营号·进群','self',sc.self.join+' 人',sc.self.score+' 人（'+rateLabelOf('self')+'）')+
+      stat('兼职号·进群','parttime',sc.pt.join+' 人',sc.pt.score+' 人（'+rateLabelOf('parttime')+'）')+
+      stat('总引流人数','total',grandJoin+' 人',isAll?'全部月度':mLabel)+
       '</div>';
     // 月度选择（按月度周期：用户选"8月"=看8月5号~9月5号的记录）
     var allTraffic=APP.data.traffic;
@@ -1270,7 +1272,6 @@
     var curMK=currentMonthKey();if(!mset[curMK]){months.unshift(curMK);}
     var monthOpts='<option value="all"'+(isAll?' selected':'')+'>全部月度</option>'+
       months.map(function(m){return '<option value="'+m+'"'+(mKey===m?' selected':'')+'>'+m.substring(0,4)+'年'+Number(m.substring(5))+'月</option>';}).join('');
-    var grandJoin=sc.off.join+sc.self.join+sc.pt.join;
     var periodInfo='<div class="card mb">'+
       '<div class="row" style="flex-wrap:wrap;gap:10px;margin-bottom:12px"><div class="body" style="flex:1;min-width:220px"><b>统计月度：</b>'+
         '<select id="tfMonth" style="width:auto;display:inline-block">'+monthOpts+'</select>'+
@@ -1281,7 +1282,7 @@
         smini('自营号',sc.self.join,sc.self.score,'var(--self)')+
         smini('兼职号',sc.pt.join,sc.pt.score,'var(--parttime)')+
         smini('三类合计人数',grandJoin,'',CH.off)+
-        smini('三类合计分数',sc.total,'',CH.txt,' 分')+
+        smini('三类合计加权人数',sc.total,'',CH.txt,' 人')+
       '</div></div>';
     // 明细筛选：月度（日历月份）→ 周（级联该月各周）→ 账号（monthFiltered 已在函数开头定义）
     var fP=APP.state.tfPeriod;
@@ -1341,7 +1342,7 @@
       '</div>'+
       '<div style="overflow:auto"><table><thead><tr><th>周</th><th>账号</th><th>引流数</th><th>负责人</th><th>账号持有者</th><th>操作</th></tr></thead><tbody>'+
       (rows||'<tr><td colspan="6" class="empty">暂无记录</td></tr>')+'</tbody></table></div>'+
-      '<div class="small muted mt">计分规则：官方号按「加好友」、自营号 / 兼职号按「进群」计算引流数，分数 = 引流数 × 该账号在「账号管理」处设置的倍率。不统计报班转化率。</div></div>';
+      '<div class="small muted mt">统计口径：官方号按「加好友」、自营号 / 兼职号按「进群」计算引流人数。为便于横向比较，系统会按账号类型设置倍率生成「加权人数」，但页面默认以实际引流人数为主要展示指标。不统计报班转化率。</div></div>';
     return head+periodInfo+renderHeat()+charts+table;
   }
 
@@ -1878,7 +1879,7 @@
     APP.data=load();
     // 品牌副标题：guest 模式去掉"小艺"，自己链接保持不变
     var bs=document.getElementById('brandSub');
-    if(bs)bs.textContent=IS_GUEST?'运营工作台':'运营工作台 · 小艺';
+    if(bs)bs.textContent='线上运营管理';
     // 选题库每周自动补充（打开即检查：距上次≥7天则从储备池放出3条）；主链接与 guest 链接一致
     try{var _rel=topicAutoRelease(false);if(_rel.added>0&&$('#toast'))toast('本周已自动补充 '+_rel.added+' 条选题');}catch(e){}
 
