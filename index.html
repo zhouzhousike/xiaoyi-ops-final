@@ -344,7 +344,8 @@
     }}catch(e){}
     return seed();
   }
-  function save(){localStorage.setItem(KEY,JSON.stringify(APP.data));if(!IS_GUEST){var c=cloudCfg();if(c.auto&&c.token)cloudPushDebounced();}}
+  function _recCount(d){return (d.traffic?d.traffic.length:0)+(d.groups?d.groups.length:0)+(d.materials?d.materials.length:0)+(d.topics?d.topics.length:0)+(d.accounts?d.accounts.length:0);}
+  function save(){APP.data.meta=APP.data.meta||{};APP.data.meta.savedAt=cloudNow();localStorage.setItem(KEY,JSON.stringify(APP.data));if(!IS_GUEST){var c=cloudCfg();if(c.auto&&c.token)cloudPushDebounced();}}
   /* ---------- 云同步（GitHub 私密 Gist） ---------- */
   var CLOUD_KEY='wb_yutian_ops_cloud_v1';
   function cloudCfg(){try{return JSON.parse(localStorage.getItem(CLOUD_KEY))||{};}catch(e){return {};}}
@@ -368,12 +369,31 @@
       .then(function(j){c.gistId=j.id;c.lastSync=cloudNow();saveCloud(c);renderBackupCloud();toast('已上传到云端');})
       .catch(function(e){toast('上传失败：'+e.message);});
   }
-  function cloudPull(){
-    var c=cloudCfg();if(!c.token||!c.gistId){toast('请先填写令牌与 Gist ID（或先上传一次）');return;}
+  // silent=true 用于进入页面时的自动同步，失败/无数据均不弹提示
+  function cloudPull(silent){
+    var c=cloudCfg();
+    if(!c.token||!c.gistId){if(!silent)toast('请先填写令牌与 Gist ID（或先上传一次）');return;}
     fetch('https://api.github.com/gists/'+c.gistId,{headers:gistHeaders(c.token)})
       .then(function(r){if(!r.ok)throw new Error('HTTP '+r.status);return r.json();})
-      .then(function(j){var f=j.files&&j.files[cloudSyncFile()];if(!f){toast('云端没有 '+cloudSyncFile());return;}try{var d=JSON.parse(f.content);migrateAccounts(d);APP.data=d;save();c.lastSync=cloudNow();saveCloud(c);renderBackupCloud();toast('已从云端拉取');}catch(e){toast('云端数据解析失败');}})
-      .catch(function(e){toast('拉取失败：'+e.message);});
+      .then(function(j){
+        var f=j.files&&j.files[cloudSyncFile()];
+        if(!f){if(!silent)toast('云端没有 '+cloudSyncFile());return;}
+        try{
+          var d=JSON.parse(f.content);migrateAccounts(d);
+          var localT=APP.data.meta&&APP.data.meta.savedAt, cloudT=d.meta&&d.meta.savedAt;
+          var adopt = cloudT ? (!localT||cloudT>=localT) : (!localT || _recCount(d)>=_recCount(APP.data));
+          if(adopt){
+            APP.data=d;save();
+            if(!silent)toast('已从云端拉取');
+          }else{
+            if(!silent)toast('本地数据较新，已上传');
+            save(); // 本地更新，回传云端
+            return;
+          }
+          c.lastSync=cloudNow();saveCloud(c);renderBackupCloud();render();
+        }catch(e){if(!silent)toast('云端数据解析失败');}
+      })
+      .catch(function(e){if(!silent)console.error('cloud pull failed',e);});
   }
   function renderBackupCloud(){
     var ct=$('#cloudToken'),cg=$('#cloudGist'),ca=$('#cloudAuto'),cl=$('#cloudLast');var c=cloudCfg();
@@ -1859,7 +1879,7 @@
           if(r){var ra=accById(r.accountId),off=ra&&ra.type==='official';var v=Number($('#tr_num_'+r.accountId).value)||0;
             if(off){r.addFriend=v;r.join=0;}else{r.join=v;r.addFriend=0;}
             r.cycle=cycle;r.cstart=cstart;r.periodId=pid;r.note=note;}
-          save();closeModal();render();toast('已保存');break;
+          save();closeModal();APP.state.tfMonth='all';APP.state.tfPeriod='';APP.state.tfAcc='all';render();toast('已保存');break;
         }
         // 新增：按账号批量写入，仅处理填了数字的账号（同账号同周期自动更新，不重复）
         var n=0;
@@ -1872,7 +1892,7 @@
           n++;
         });
         if(!n){toast('请至少填写一个账号数字');break;}
-        save();closeModal();render();toast('已保存 '+n+' 条');break;}
+        save();closeModal();APP.state.tfMonth='all';APP.state.tfPeriod='';APP.state.tfAcc='all';render();toast('已保存 '+n+' 条');break;}
       case 'periodEdit':periodForm();break;
       case 'periodSave':{var p=APP.data.periods.filter(function(x){return x.id===id;})[0];
         if(p){p.start=$('#pe_start').value;p.end=$('#pe_end').value;save();closeModal();render();toast('月度边界已更新');}break;}
@@ -1939,6 +1959,8 @@
   /* ---------- 初始化 ---------- */
   function init(){
     APP.data=load();
+    // 多设备同步：进入页面时静默拉取云端最新数据（按 savedAt 取较新一方，避免陈旧云端覆盖本地新数据）
+    try{var _cc=cloudCfg();if(_cc&&_cc.token&&_cc.gistId&&_cc.auto){cloudPull(true);}}catch(e){}
     // 品牌副标题：guest 模式去掉"小艺"，自己链接保持不变
     var bs=document.getElementById('brandSub');
     if(bs)bs.textContent='线上运营管理';
