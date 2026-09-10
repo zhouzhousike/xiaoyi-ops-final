@@ -731,7 +731,19 @@
   }
   // 单条记录的"引流数"：官号=加好友，自营/兼职=进群
   function recNum(rec){var a=accById(rec.accountId);if(!a)return 0;return a.type==='official'?(Number(rec.addFriend)||0):(Number(rec.join)||0);}
-  function getPeriod(pid){return APP.data.periods.filter(function(x){return x.id===pid;})[0];}
+  function getPeriod(pid){
+    var p=APP.data.periods.filter(function(x){return x.id===pid;})[0];
+    if(p)return p;
+    var m=String(pid).match(/^p_(\d{2})05$/);
+    if(!m)return null;
+    var mm=parseInt(m[1],10);
+    var yr=new Date().getFullYear();
+    var start=yr+'-'+pad2(mm)+'-05';
+    var next=mm+1,yr2=yr;
+    if(next>12){next=1;yr2++;}
+    var end=yr2+'-'+pad2(next)+'-05';
+    return {id:pid,start:start,end:end,note:'自动周期'};
+  }
   // 当前统计月度 key（YYYY-MM，跟随 today）：每月5号~次月5号为一个统计月度
   function currentMonthKey(){return pidToMonthKey(pidOf(today()));}
   // 当前统计月度对应的 period id（today 落在哪个 5号~次月5号 区间）
@@ -739,7 +751,7 @@
     var t=today();
     var cps=APP.data.periods.filter(function(p){return t>=p.start && t<p.end;});
     if(cps.length)return cps[0].id;
-    return APP.data.meta.currentPeriod;
+    return pidOf(t);
   }
   // 月度 key（YYYY-MM）→ period id（按该月5号起算的月度周期）
   function monthKeyToPid(mk){
@@ -873,7 +885,7 @@
   /* ---------- 驾驶舱 ---------- */
   function viewDashboard(){
     var pid=currentMonthPid();
-    var p=APP.data.periods.filter(function(x){return x.id===pid;})[0];
+    var p=getPeriod(pid);
     var sc=periodSummary(pid);
     var ptSub=parttimeSubtotal(pid);
     var exam=APP.data.meta.examDate, dn=daysBetween(today(),exam);
@@ -1956,7 +1968,7 @@
       if(t.id==='matFile'){var fl=t.files;if(!fl||!fl.length)return;handleFiles(fl);t.value='';}
     });
     renderNav();
-    var cpid=currentMonthPid();var cp=APP.data.periods.filter(function(x){return x.id===cpid;})[0];
+    var cpid=currentMonthPid();var cp=getPeriod(cpid);
     $('#periodPill').textContent='本月度 '+(cp?(cp.start+'~'+cp.end):'-');
     navigate('dashboard');
   }
