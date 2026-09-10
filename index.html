@@ -1581,8 +1581,11 @@
       if(ms&&ms[1]){endISO='2026-'+pad2(+ms[1].split('.')[0])+'-'+pad2(+ms[1].split('.')[1]);}
       note=rec.note||'';
     }
-    // 账号列表：活跃排前，停用置后并标注
-    var sortedAccs=APP.data.accounts.slice().sort(function(a,b){if(a.active!==b.active)return a.active?-1:1;return 0;});
+    // 账号列表：只显示启用账号；停更账号不显示（在「账号管理」改为启用后恢复显示）。
+    // 例外：编辑旧记录时，该记录所属账号即使已停更也要显示输入框，否则无法修改历史数据。
+    var sortedAccs=APP.data.accounts.slice()
+      .filter(function(a){return a.active||(rec&&rec.accountId===a.id);})
+      .sort(function(a,b){if(a.active!==b.active)return a.active?-1:1;return 0;});
     // 编辑时预填该账号数值
     var prefill={};
     if(rec){var pa=accById(rec.accountId);prefill[rec.accountId]=(pa&&pa.type==='official')?rec.addFriend:rec.join;}
@@ -1597,7 +1600,7 @@
       field('起始日期','<input type="date" id="tr_start" value="'+esc(startISO)+'">')+
       field('结束日期','<input type="date" id="tr_end" value="'+esc(endISO)+'">')+
       '<div class="muted small mb" id="tr_cyclePrev"></div>'+
-      field('各账号引流数（填数字即可，留空不录）','<div class="tr-grid">'+rows+'</div>')+
+      field('各账号引流数（填数字即可，留空不录；停更账号不显示，可在「账号管理」恢复）','<div class="tr-grid">'+rows+'</div>')+
       field('备注',inp('tr_note',note))+
       '<div class="row" style="justify-content:flex-end"><button class="btn ghost" data-x>取消</button><button class="btn" data-act="trafficSave" data-id="'+(rec&&rec.id||'')+'">保存</button></div>');
     function syncPrev(){var s=$('#tr_start').value,e=$('#tr_end').value,t='';if(s){var md=formatMD(s);var md2=(e&&e!==s)?formatMD(e):'';t='周期标签：'+md+(md2?(' - '+md2):'');}$('#tr_cyclePrev').textContent=t;}
