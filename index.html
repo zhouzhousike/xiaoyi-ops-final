@@ -786,7 +786,7 @@
     return yr+'-'+pad2(mm);
   }
   // 该记录是否落在某统计周期内（按 cstart 起始日判断）
-  function inPeriod(r,p){if(!p)return false;var c=r.cstart||cycleStart(r.cycle);return c>=p.start&&c<p.end;}
+  function inPeriod(r,p){if(!p)return false;var c=r.cend||r.cstart||cycleStart(r.cycle);return c>=p.start&&c<p.end;}
   function periodRecs(pid){var p=getPeriod(pid);return APP.data.traffic.filter(function(r){return inPeriod(r,p);});}
   // 按当前周期汇总三类引流实际人数
   // 按当前周期汇总三类引流实际人数
@@ -1192,7 +1192,7 @@
     var map={};
     APP.data.traffic.forEach(function(r){
       var k=r.cycle||'-';
-      if(!map[k])map[k]={label:k,cstart:r.cstart||cycleStart(k),total:0};
+      if(!map[k])map[k]={label:k,cstart:r.cstart||cycleStart(k),cend:r.cend||r.cstart||cycleStart(k),total:0};
       map[k].total+=recNum(r);
     });
     var arr=Object.keys(map).map(function(k){return map[k];});
@@ -1206,7 +1206,7 @@
       var mKey=APP.state.tfMonth||currentMonthKey();
       var mPid=(mKey==='all')?APP.data.meta.currentPeriod:monthKeyToPid(mKey);
       var p=getPeriod(mPid);
-      var inP=cycles.filter(function(c){return inPeriod({cstart:c.cstart},p);});
+      var inP=cycles.filter(function(c){return inPeriod({cstart:c.cstart,cend:c.cend},p);});
       return {cells:inP,label:'本月度各周'};
     }
     if(range==='month'){
@@ -1325,7 +1325,7 @@
       var mp=getPeriod(monthKeyToPid(mKey));
       if(mp){monthFiltered=monthFiltered.filter(function(r){return inPeriod(r,mp);});}
       else{ // 对应统计周期在库中不存在时，按自然月（cstart 的 YYYY-MM）兜底，避免整列被筛空
-        monthFiltered=monthFiltered.filter(function(r){var c=r.cstart||cycleStart(r.cycle);return c&&c.substring(0,7)===mKey;});
+        monthFiltered=monthFiltered.filter(function(r){var c=r.cend||r.cstart||cycleStart(r.cycle);return c&&c.substring(0,7)===mKey;});
       }
     }
     // 从过滤后数据汇总实际人数（保证头部卡片=柱状图=明细表，三处口径一致）
@@ -1340,7 +1340,7 @@
       '</div>';
     // 月度选择（按月度周期：用户选"8月"=看8月5号~9月5号的记录）
     var allTraffic=APP.data.traffic;
-    var mset={};allTraffic.forEach(function(r){var cs=r.cstart||cycleStart(r.cycle);mset[pidToMonthKey(pidOf(cs))]=1;});
+    var mset={};allTraffic.forEach(function(r){var cs=r.cend||r.cstart||cycleStart(r.cycle);mset[pidToMonthKey(pidOf(cs))]=1;});
     var months=Object.keys(mset).sort().reverse();
     var curMK=currentMonthKey();if(!mset[curMK]){months.unshift(curMK);}
     var monthOpts='<option value="all"'+(isAll?' selected':'')+'>全部月度</option>'+
@@ -1663,9 +1663,8 @@
     if(rec&&rec.cstart){
       startISO=String(rec.cstart);
       if(/^\d{1,2}\.\d{1,2}$/.test(startISO)){startISO='2026-'+pad2(+startISO.split('.')[0])+'-'+pad2(+startISO.split('.')[1]);}
-      var cyc=String(rec.cycle||'');
-      var ms=cyc.match(/(\d{1,2})\.(\d{1,2})/g);
-      if(ms&&ms[1]){endISO='2026-'+pad2(+ms[1].split('.')[0])+'-'+pad2(+ms[1].split('.')[1]);}
+      endISO=rec.cend?String(rec.cend):'';
+      if(!endISO){var cyc=String(rec.cycle||'');var ms=cyc.match(/(\d{1,2})\.(\d{1,2})/g);if(ms&&ms[1]){endISO='2026-'+pad2(+ms[1].split('.')[0])+'-'+pad2(+ms[1].split('.')[1]);}}
       note=rec.note||'';
     }
     // 账号列表：只显示启用账号；停更账号不显示（在「账号管理」改为启用后恢复显示）。
@@ -1872,13 +1871,13 @@
         var startISO=$('#tr_start').value, endISO=$('#tr_end').value||$('#tr_start').value;
         if(!startISO){toast('请选择起始日期');break;}
         var cycle=formatMD(startISO)+(endISO&&endISO!==startISO?(' - '+formatMD(endISO)):'');
-        var cstart=startISO, pid=pidOf(cstart), note=$('#tr_note').value;
+        var cstart=startISO, cend=endISO||startISO, pid=pidOf(cend), note=$('#tr_note').value;
         // 编辑单条：直接更新该账号记录
         if(id){
           var r=find(APP.data.traffic,id);
           if(r){var ra=accById(r.accountId),off=ra&&ra.type==='official';var v=Number($('#tr_num_'+r.accountId).value)||0;
             if(off){r.addFriend=v;r.join=0;}else{r.join=v;r.addFriend=0;}
-            r.cycle=cycle;r.cstart=cstart;r.periodId=pid;r.note=note;}
+            r.cycle=cycle;r.cstart=cstart;r.cend=cend;r.periodId=pid;r.note=note;}
           save();closeModal();APP.state.tfMonth='all';APP.state.tfPeriod='';APP.state.tfAcc='all';render();toast('已保存');break;
         }
         // 新增：按账号批量写入，仅处理填了数字的账号（同账号同周期自动更新，不重复）
@@ -1887,8 +1886,8 @@
           var el=$('#tr_num_'+a.id);if(!el)return;var v=Number(el.value)||0;if(v<=0)return;
           var off=a.type==='official';
           var ex=APP.data.traffic.filter(function(r){return r.accountId===a.id&&r.cycle===cycle;})[0];
-          if(ex){if(off){ex.addFriend=v;ex.join=0;}else{ex.join=v;ex.addFriend=0;}ex.cstart=cstart;ex.periodId=pid;ex.note=note;}
-          else APP.data.traffic.unshift({id:uid(),periodId:pid,cycle:cycle,cstart:cstart,accountId:a.id,join:off?0:v,addFriend:off?v:0,note:note});
+          if(ex){if(off){ex.addFriend=v;ex.join=0;}else{ex.join=v;ex.addFriend=0;}ex.cstart=cstart;ex.cend=cend;ex.periodId=pid;ex.note=note;}
+          else APP.data.traffic.unshift({id:uid(),periodId:pid,cycle:cycle,cstart:cstart,cend:cend,accountId:a.id,join:off?0:v,addFriend:off?v:0,note:note});
           n++;
         });
         if(!n){toast('请至少填写一个账号数字');break;}
