@@ -1394,6 +1394,8 @@
     var typeOrder=['课程','真题','习题册','其他'];
     var cur=APP.state.matType||'全部';
     var ms=(cur==='全部')?all:all.filter(function(m){return m.type===cur;});
+    // 排序：待放在上，已放在下
+    ms=ms.slice().sort(function(a,b){return (a.status==='已放'?1:0)-(b.status==='已放'?1:0);});
     var filter='<div class="row mb">'+['全部'].concat(typeOrder).map(function(t){
       var n=(t==='全部')?all.length:all.filter(function(m){return m.type===t;}).length;
       return '<button class="btn sm ghost'+(cur===t?' active':'')+'" data-mfilter="'+t+'">'+t+'（'+n+'）</button>';
@@ -1449,6 +1451,12 @@
     var accs=APP.data.accounts;
     var filt=APP.state.accTypeFilter||'all';
     if(filt!=='all'){accs=accs.filter(function(a){return a.type===filt;});}
+    // 排序：状态 1（启用）在上，0（停更）整体沉底；启用内部按 官方号→自营号→兼职号 排
+    var typeRank={official:0,self:1,parttime:2};
+    accs=accs.slice().sort(function(a,b){
+      if(a.active!==b.active)return a.active?-1:1;
+      return (typeRank[a.type]||9)-(typeRank[b.type]||9);
+    });
     var types=[['all','全部'],['official','官方号'],['self','自营号'],['parttime','兼职号']];
     var typeBar='<div class="tabbar mb">'+types.map(function(t){
       return '<div class="tab'+(filt===t[0]?' active':'')+'" data-accfilter="'+t[0]+'">'+t[1]+'（'+
