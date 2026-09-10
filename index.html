@@ -345,7 +345,7 @@
     return seed();
   }
   function save(){localStorage.setItem(KEY,JSON.stringify(APP.data));if(!IS_GUEST){var c=cloudCfg();if(c.auto&&c.token)cloudPushDebounced();}}
-  /* ---------- 云同步（GitHub 私密 Gist 做手机/电脑共享） ---------- */
+  /* ---------- 云同步（GitHub 私密 Gist） ---------- */
   var CLOUD_KEY='wb_yutian_ops_cloud_v1';
   function cloudCfg(){try{return JSON.parse(localStorage.getItem(CLOUD_KEY))||{};}catch(e){return {};}}
   function saveCloud(c){localStorage.setItem(CLOUD_KEY,JSON.stringify(c));}
@@ -1544,30 +1544,15 @@
   function viewBackup(){
     var cloudCard = IS_GUEST ? '' : (function(){
       var c=cloudCfg();
-      return '<div class="card"><h3>'+I.cloud+'云同步（手机 / 电脑共享）</h3>'+
+        return '<div class="card"><h3>'+I.cloud+'云同步</h3>'+
         '<div class="muted small mb">把数据存到你的 GitHub 私密 Gist，手机和电脑填同一个令牌 + 同一个 Gist ID 即可共享。令牌仅存本机浏览器，仅用于访问 Gist，无需任何仓库权限。</div>'+
-        '<div class="mini" style="color:var(--brand-d);margin-top:-2px">本工作台云端文件为 wb_yutian_ops_main.json，与 PCOS（pcos-state.json）、备考工作台互不干扰、各自独立。</div>'+
-        field('GitHub 令牌（仅需 gist 权限）','<input type="password" id="cloudToken" placeholder="ghp_xxx" value="'+esc(c.token||'')+'">' )+
-        field('Gist ID（留空则首次上传自动创建）','<input id="cloudGist" placeholder="如 a1b2c3d4e5" value="'+esc(c.gistId||'')+'">' )+
+        field('GitHub 令牌','<input type="password" id="cloudToken" placeholder="ghp_xxx" value="'+esc(c.token||'')+'">' )+
+        field('Gist ID','<input id="cloudGist" placeholder="如 a1b2c3d4e5" value="'+esc(c.gistId||'')+'">' )+
         '<div class="row" style="margin-top:8px"><button class="btn" data-act="cloudPush">↑ 上传到云端</button><button class="btn ghost" data-act="cloudPull">↓ 从云端拉取</button></div>'+
         '<label style="display:flex;align-items:center;gap:6px;margin-top:10px;font-size:13px;color:var(--muted)"><input type="checkbox" id="cloudAuto" '+((c.auto)?'checked':'')+'> 每次保存自动同步到云端</label>'+
         '<div class="mini" id="cloudLast" style="margin-top:6px">上次同步：'+(c.lastSync||'从未')+'</div></div>';
     })();
-    return '<div class="card"><h3>'+I.backup+'数据备份与恢复</h3>'+
-      '<div class="muted small mb">所有数据存于本浏览器（localStorage）。换设备或清缓存前请导出备份。</div>'+
-      '<div class="row">'+
-        '<button class="btn" data-act="export">'+I.send+'导出 JSON 备份</button>'+
-        '<button class="btn ghost" data-act="import">'+I.book+'导入恢复</button>'+
-        '<button class="btn danger" data-act="reset">'+I.trash+'清空示例数据</button>'+
-      '</div>'+
-      '<div class="kv mt"><span class="muted">选题库</span><b>'+APP.data.topics.length+' 条</b></div>'+
-      '<div class="kv"><span class="muted">引流记录</span><b>'+APP.data.traffic.length+' 条</b></div>'+
-      '<div class="kv"><span class="muted">私域群</span><b>'+APP.data.groups.length+' 个</b></div>'+
-      '<div class="kv"><span class="muted">资料</span><b>'+APP.data.materials.length+' 项</b></div>'+
-      '<div class="kv"><span class="muted">答疑沉淀</span><b>'+APP.data.qa.length+' 条</b></div>'+
-      '</div>'+
-      cloudCard +
-      '<input type="file" id="importFile" accept="application/json" style="display:none">';
+    return cloudCard;
   }
 
   /* ---------- 图表（内联SVG） ---------- */
