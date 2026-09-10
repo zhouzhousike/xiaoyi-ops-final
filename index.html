@@ -4,6 +4,9 @@
 <head>
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<meta http-equiv="Cache-Control" content="no-cache, no-store, must-revalidate">
+<meta http-equiv="Pragma" content="no-cache">
+<meta http-equiv="Expires" content="0">
 <title>宇天408 · 运营工作台</title>
 <style>
   :root{
@@ -13,6 +16,37 @@
     --ok:#5d7d4f; --warn:#b4543f; --soft:#EEF0ED;
     --r:14px; --sh:0 1px 3px rgba(60,50,40,.08),0 6px 18px rgba(60,50,40,.07);
   }
+  /* ===== 别人的链接（guest）专属配色：E7ADA2 / E4DED4 / 7A857C / 5E6462 / F6FFF4 ===== */
+  body.guest{
+    --bg:#F6F7F4; --panel:#ffffff; --ink:#4A4F4D; --muted:#7A857C; --line:#E4DED4;
+    --brand:#7A857C; --brand-d:#5E6462; --brand-l:#E8EDE6;
+    --official:#5E6462; --self:#7A857C; --parttime:#B7ADA2;
+    --ok:#7A857C; --warn:#B7ADA2; --soft:#E4DED4;
+  }
+  body.guest .topbar{background:rgba(246,247,244,.92)}
+  body.guest .tag.official{background:#EAE7E3;color:#4A4F4D;border-left:3px solid #5E6462}
+  body.guest .tag.self{background:#E4EAE6;color:#3F4A42;border-left:3px solid #7A857C}
+  body.guest .tag.parttime{background:#EDE6E0;color:#6B5E54;border-left:3px solid #B7ADA2}
+  body.guest .tag.gray{background:#E4DED4;color:#5E6462}
+  body.guest .tag.green{background:#E4EAE6;color:#3F4A42}
+  body.guest .tag.red{background:#EDE6E0;color:#6B5E54}
+  body.guest .tag.blue{background:#E4EAE6;color:#3F4A42}
+  body.guest .st-idea{background:#E4DED4;color:#4A4F4D}
+  body.guest .st-writing{background:#E4EAE6;color:#3F4A42}
+  body.guest .st-review{background:#EAE7E3;color:#4A4F4D}
+  body.guest .st-published{background:#E4EAE6;color:#3F4A42}
+  body.guest .focus{background:linear-gradient(135deg,#F6F7F4,#EDE6E0);border:1px solid #E4DED4;color:#4A4F4D}
+  body.guest .focus h3{color:#5E6462}
+  body.guest .pub-summary{background:#EDE6E0;border:1px solid #B7ADA2;color:#4A4F4D}
+  body.guest .pub-summary b{color:#5E6462}
+  body.guest th{background:#F6F7F4}
+  body.guest tr:hover td{background:#F0F1EE}
+  body.guest .heat .cell{background:#F6F7F4;color:#4A4F4D}
+  body.guest .heat .h0{background:#F6F7F4}
+  body.guest .heat .h1{background:#E4DED4}
+  body.guest .heat .h2{background:#B7ADA2;color:#4A4F4D}
+  body.guest .heat .h3{background:#7A857C;color:#fff}
+  body.guest .heat .h4{background:#5E6462;color:#fff}
   *{box-sizing:border-box;-webkit-tap-highlight-color:transparent}
   html,body{margin:0;padding:0}
   body{font-family:-apple-system,BlinkMacSystemFont,"Segoe UI",Roboto,"PingFang SC","Microsoft YaHei",sans-serif;
@@ -58,6 +92,12 @@
   .stat .v{font-size:24px;font-weight:800;margin-top:4px;letter-spacing:.3px}
   .stat .x{font-size:12px;color:var(--muted);margin-top:2px}
   .stat.official{border-left:4px solid var(--official)} .stat.official .v{color:var(--official)}
+  /* 引流批量录入 */
+  .tr-grid{display:flex;flex-direction:column;gap:4px;margin-top:4px}
+  .tr-row{display:flex;align-items:center;gap:10px;padding:6px 2px;border-bottom:1px dashed var(--line)}
+  .tr-row:last-child{border-bottom:none}
+  .tr-row .tr-name{flex:1;font-size:13px}
+  .tr-row input[type=number]{width:120px;text-align:right}
   .stat.self{border-left:4px solid var(--self)} .stat.self .v{color:var(--self)}
   .stat.parttime{border-left:4px solid var(--parttime)} .stat.parttime .v{color:var(--parttime)}
   .stat.total{border-left:4px solid var(--brand)} .stat.total .v{color:var(--brand-d)}
@@ -66,17 +106,27 @@
   .smini .k{font-size:12px;color:var(--muted);font-weight:600}
   .smini .v{font-size:20px;font-weight:800;margin-top:3px;font-variant-numeric:tabular-nums}
   .smini .x{font-size:11px;color:var(--muted);margin-top:1px}
+  /* 统一下拉筛选框：柔和风格 + 主题配色 */
+  select{font-family:inherit;font-size:13.5px;color:var(--ink);background:#fff;
+    border:1px solid var(--line);border-radius:10px;padding:8px 30px 8px 12px;
+    -webkit-appearance:none;appearance:none;cursor:pointer;transition:.15s;
+    background-image:linear-gradient(45deg,transparent 50%,var(--muted) 50%),linear-gradient(135deg,var(--muted) 50%,transparent 50%);
+    background-position:calc(100% - 16px) calc(50% - 1px),calc(100% - 11px) calc(50% - 1px);
+    background-size:5px 5px,5px 5px;background-repeat:no-repeat}
+  select:hover{border-color:var(--brand)}
+  select:focus{outline:none;border-color:var(--brand);box-shadow:0 0 0 3px var(--brand-l)}
   .filterbar{display:flex;flex-wrap:wrap;gap:8px;align-items:center;margin-bottom:12px}
-  .fl{display:inline-flex;flex-direction:column;gap:3px;font-size:12px;color:var(--muted);font-weight:600}
-  .fl select{font-weight:400;width:auto;min-width:120px}
+  .fl{display:inline-flex;flex-direction:column;gap:4px;font-size:12px;color:var(--muted);font-weight:600}
+  .fl select,.filterbar select,.row select,.body select{width:auto;min-width:140px;max-width:240px}
   .filterbar .dim{display:flex;gap:6px}
-  .filterbar select{max-width:200px}
   /* 按钮 */
   .btn{border:none;border-radius:11px;padding:10px 15px;font-weight:700;font-size:13.5px;cursor:pointer;
     background:var(--brand);color:#fff;min-height:42px;display:inline-flex;align-items:center;gap:6px}
   .btn:hover{background:var(--brand-d)}
   .btn.ghost{background:#fff;color:var(--ink);border:1px solid var(--line)}
   .btn.ghost:hover{background:var(--brand-l)}
+  .btn.ghost.active{background:var(--brand);color:#fff;border-color:var(--brand)}
+  .btn.ghost.active:hover{background:var(--brand-d);border-color:var(--brand-d)}
   .btn.sm{padding:7px 11px;font-size:12.5px;min-height:36px;border-radius:9px}
   .btn.danger{background:#fff;color:var(--warn);border:1px solid #f3c4c4}
   .btn.danger:hover{background:#fff1f1}
@@ -103,7 +153,8 @@
   .li{background:#fff;border:1px solid var(--line);border-radius:12px;padding:12px 14px;display:flex;gap:12px;align-items:flex-start}
   .li .body{flex:1;min-width:0}
   .li .t{font-weight:700;font-size:14.5px;margin:0 0 3px}
-  .li .m{color:var(--muted);font-size:12.5px}
+  .li .m{color:var(--muted);font-size:12.5px;display:flex;align-items:center;gap:8px;flex-wrap:wrap}
+  .li .m a{color:var(--brand-d);text-decoration:underline}
   .li .acts{display:flex;gap:6px;flex:none}
   table{width:100%;border-collapse:collapse;font-size:13px}
   th,td{padding:9px 10px;text-align:left;border-bottom:1px solid var(--line)}
@@ -117,8 +168,14 @@
   .modal h3{margin:0 0 14px;font-size:16px;font-weight:800}
   .field{margin-bottom:12px}
   .field label{display:block;font-size:12.5px;font-weight:700;color:var(--muted);margin-bottom:5px}
-  .field input,.field select,.field textarea{width:100%;padding:10px 11px;border:1px solid var(--line);border-radius:10px;font-size:15px;font-family:inherit;background:#fff;color:var(--ink)}
+  .field input,.field select,.field textarea{width:100%;padding:10px 30px 10px 11px;border:1px solid var(--line);border-radius:10px;font-size:15px;font-family:inherit;background:#fff;color:var(--ink)}
   .field textarea{resize:vertical;min-height:64px}
+  .grid2{display:grid;grid-template-columns:1fr 1fr;gap:0 12px}
+  .mini{padding:7px 30px 7px 11px;border:1px solid var(--line);border-radius:9px;font-size:13px;background:#fff url("data:image/svg+xml;utf8,<svg xmlns='http://www.w3.org/2000/svg' width='10' height='6'><path d='M0 0l5 6 5-6z' fill='%2397979C'/></svg>") no-repeat right 11px center;color:var(--ink);font-family:inherit;appearance:none;-webkit-appearance:none;cursor:pointer;transition:border-color .15s,box-shadow .15s}
+  .mini:focus{outline:none;border-color:var(--brand);box-shadow:0 0 0 3px var(--brand-l)}
+  .pub-summary{background:var(--brand-l);border:1px solid #E3E7F2;border-radius:10px;padding:9px 12px;font-size:12.5px;color:#3a4252;margin-bottom:12px}
+  .pub-summary b{color:var(--brand-d)}
+  .li .m.stats{font-size:12px;margin-top:2px}
   .field input:focus,.field select:focus,.field textarea:focus{outline:none;border-color:var(--brand);box-shadow:0 0 0 3px var(--brand-l)}
   .seg{display:flex;gap:6px;flex-wrap:wrap}
   .seg label{display:inline-flex;padding:8px 12px;border:1px solid var(--line);border-radius:9px;font-size:13px;font-weight:600;cursor:pointer;background:#fff}
@@ -163,6 +220,9 @@
   .muted{color:var(--muted)} .small{font-size:12.5px}
   .chartbox{width:100%;overflow:hidden}
   .empty{text-align:center;color:var(--muted);padding:26px 10px;font-size:13.5px}
+  .sub-head{margin:16px 2px 8px;color:var(--muted);font-size:12.5px;font-weight:700;letter-spacing:.3px}
+  .pub-tip{margin:0 0 10px;padding:8px 11px;background:#F7F6F2;border:1px dashed var(--line);border-radius:9px;font-size:12.5px;color:var(--ink);line-height:1.55}
+  .pub-tip .tag{margin-left:2px;margin-right:2px;font-size:11px}
   .tabbar{display:flex;gap:6px;flex-wrap:wrap;margin-bottom:14px}
   .tabbar .tab{padding:9px 14px;border-radius:10px;font-weight:700;font-size:13px;cursor:pointer;background:#fff;border:1px solid var(--line);color:var(--muted)}
   .tabbar .tab.active{background:var(--brand);color:#fff;border-color:var(--brand)}
@@ -188,7 +248,7 @@
 <body>
 <div class="app">
   <aside class="nav" id="nav">
-    <div class="logo">宇天408<small>运营工作台 · 小艺</small></div>
+    <div class="logo">宇天408<small id="brandSub"></small></div>
     <div class="menu" id="menu"></div>
     <div class="foot">单文件 · 本地存储<br>数据自动存浏览器<br>不展示报班转化率</div>
   </aside>
@@ -215,7 +275,16 @@
 <script>
 (function(){
   "use strict";
-  var KEY = "wb_yutian_ops_v1";
+  var IS_GUEST = /[?&](guest|demo|blank)\b/i.test(location.search || '');
+  var KEY = IS_GUEST ? "wb_yutian_ops_guest_v1" : "wb_yutian_ops_v1";
+  var GUEST_DATA_VERSION = 2;
+  // 配色：guest 链接沿用主链接（小艺工作台）的米黄+蓝灰配色，不再单独换肤
+  document.body.className = '';
+  // 图表配色：两个链接统一蓝灰系
+  var CH = {
+    off:'#B6C2CF', self:'#97979C', pt:'#8C99A8',
+    grid:'#EEF0ED', axis:'#97979C', txt:'#56565B'
+  };
   var APP = {};
 
   /* ---------- 图标 ---------- */
@@ -242,8 +311,27 @@
   };
 
   /* ---------- 存储 ---------- */
+  function migrateAccounts(d){
+    if(!d||!d.accounts)return;
+    d.accounts.forEach(function(a){if(a.id==='acc_off'&&a.name==='宇天408计算机考研')a.name='小红书官号';});
+    if(!d.topicAuto)d.topicAuto={last:'',idx:0};
+    // 若已有数据中完全没有 28 考研选题，自动从对应池补 8 条，避免旧缓存看不到 28
+    var has28=(d.topics||[]).some(function(t){return (t.audience||'27')==='28';});
+    if(!has28){
+      var pool=IS_GUEST?GUEST_TOPIC_POOL:TOPIC_POOL;
+      var items28=pool.filter(function(t){return t.audience==='28';}).slice(0,8);
+      items28.forEach(function(s){
+        d.topics.push({id:uid(),title:s.title,angle:s.angle,subject:s.subject,stage:s.stage,pain:s.pain,forAccount:'',status:'idea',audience:'28',note:'（自动补充）',createdAt:today()});
+      });
+    }
+  }
   function load(){
-    try{var s=localStorage.getItem(KEY);if(s)return JSON.parse(s);}catch(e){}
+    try{var s=localStorage.getItem(KEY);if(s){
+      var d=JSON.parse(s);
+      // 别人用的链接：数据版本不匹配时自动重置，避免旧缓存导致新选题/配色不生效
+      if(IS_GUEST && (d.version|0)!==GUEST_DATA_VERSION){ return seed(); }
+      migrateAccounts(d);return d;
+    }}catch(e){}
     return seed();
   }
   function save(){localStorage.setItem(KEY,JSON.stringify(APP.data));}
@@ -255,6 +343,41 @@
   function esc(s){return String(s==null?'':s).replace(/[&<>"]/g,function(c){return {'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;'}[c];});}
   function fmtDate(d){d=new Date(d);if(isNaN(d))return d;var m=('0'+(d.getMonth()+1)).slice(-2),day=('0'+d.getDate()).slice(-2);return d.getFullYear()+'-'+m+'-'+day;}
   function today(){return fmtDate(new Date());}
+  function parseCount(v){
+    if(v==null)return 0;
+    v=String(v).trim().toLowerCase();
+    if(!v)return 0;
+    var mul=1;
+    if(v.slice(-1)==='w'){mul=10000;v=v.slice(0,-1);}
+    else if(v.slice(-1)==='k'){mul=1000;v=v.slice(0,-1);}
+    else if(v.slice(-1)==='万'){mul=10000;v=v.slice(0,-1);}
+    else if(v.slice(-1)==='千'){mul=1000;v=v.slice(0,-1);}
+    var n=parseFloat(v);
+    if(isNaN(n))return 0;
+    return Math.round(n*mul);
+  }
+  function formatCount(n){
+    n=Number(n)||0;
+    if(n>=10000){var w=n/10000;return (Math.round(w*10)/10)+'w';}
+    if(n>=1000){var k=n/1000;return (Math.round(k*10)/10)+'k';}
+    return String(n);
+  }
+  function extractUrls(text){
+    if(!text)return [];
+    var re=/https?:\/\/[^\s<>"{}|\\^`\[\]]+/gi,m,out=[];
+    while((m=re.exec(text))!==null){out.push(m[0]);}
+    return out;
+  }
+  function copyText(text){
+    if(navigator.clipboard && navigator.clipboard.writeText){
+      navigator.clipboard.writeText(text).then(function(){toast('已复制');}).catch(function(){fallbackCopy(text);});
+    }else{fallbackCopy(text);}
+    function fallbackCopy(t){
+      var ta=document.createElement('textarea');ta.value=t;ta.style.position='fixed';ta.style.opacity='0';document.body.appendChild(ta);ta.select();
+      try{document.execCommand('copy');toast('已复制');}catch(e){toast('复制失败');}
+      document.body.removeChild(ta);
+    }
+  }
   function daysBetween(a,b){return Math.round((new Date(b)-new Date(a))/86400000);}
   function toast(msg){var t=$('#toast');t.textContent=msg;t.classList.add('show');clearTimeout(APP._tt);APP._tt=setTimeout(function(){t.classList.remove('show');},2200);}
   // 统计月度归属：每月5号~次月5号为一个周期（如 8.5–9.5=p_0805）；<5号归上月
@@ -264,11 +387,39 @@
     if(dd<5){m=m-1;if(m<=0)m+=12;}
     return 'p_'+pad2(m)+'05';
   }
+  // 日历月份（YYYY-MM），用于明细表月度筛选（用户选"7月"=只看7月的周，不含跨月周期）
+  function calMonthOf(dateStr){return dateStr.substring(0,7);}
 
   /* ---------- 种子数据 ---------- */
+  function seedGroups(){return [
+      {id:uid(),name:'27 59群',member:200,owner:'宇天派哥',addFriend:101,convertOwner:'宇天派哥',cat:'27考研'},
+      {id:uid(),name:'27 58群',member:200,owner:'宇天希哥',addFriend:105,convertOwner:'宇天希哥',cat:'27考研'},
+      {id:uid(),name:'27 57群',member:200,owner:'宇天派哥',addFriend:107,convertOwner:'宇天派哥',cat:'27考研'},
+      {id:uid(),name:'27 56群',member:200,owner:'宇天希哥',addFriend:100,convertOwner:'宇天希哥',cat:'27考研'},
+      {id:uid(),name:'27 55群',member:200,owner:'宇天派哥',addFriend:106,convertOwner:'宇天派哥',cat:'27考研'},
+      {id:uid(),name:'27 54群',member:200,owner:'宇天希哥',addFriend:146,convertOwner:'宇天希哥',cat:'27考研'},
+      {id:uid(),name:'27 53群',member:200,owner:'宇天派哥',addFriend:104,convertOwner:'宇天派哥',cat:'27考研'},
+      {id:uid(),name:'27 52群',member:200,owner:'宇天希哥',addFriend:72,convertOwner:'宇天希哥',cat:'27考研'}
+    ];}
   function seed(){
+    if(IS_GUEST){
+      // 给别人用的空白工作台：无任何业务数据，仅保留一个可改的占位官方号，避免表单报错
+      // 选题库：独立选题池，首次打开即预置 20 条（与“自己”的选题库不同），之后每周再补 5 条
+      var gInit=Math.min(20,GUEST_TOPIC_POOL.length);
+      var gTopics=GUEST_TOPIC_POOL.slice(0,gInit).map(function(s){
+        return {id:uid(),title:s.title,angle:s.angle,subject:s.subject,stage:s.stage,pain:s.pain,forAccount:'',status:'idea',audience:s.audience||'27',note:'（每周自动补充）',createdAt:today()};
+      });
+      return {
+        meta:{currentPeriod:'p_0805',examDate:'2026-12-26',examName:'27考研'},
+        accounts:[{id:'acc_off',name:'官方号',type:'official',rate:1,holder:'',owner:'',active:true,persona:'',note:''}],
+        periods:[{id:'p_0805',start:'2026-08-05',end:'2026-09-05',note:'当前周期'}],
+        traffic:[], groups:[], materials:[], topics:gTopics, drafts:[], publishes:[], reviews:[], qa:[], files:[],
+        topicAuto:{last:today(),idx:gInit},
+        version:GUEST_DATA_VERSION
+      };
+    }
     var accounts=[
-      {id:'acc_off',name:'宇天408计算机考研',type:'official',rate:3,holder:'小艺',owner:'小艺/蒋老师',active:true,persona:'官方主阵地',note:'官方号，引流分3倍，核心指标=加好友'},
+      {id:'acc_off',name:'小红书官号',type:'official',rate:3,holder:'小艺',owner:'小艺/蒋老师',active:true,persona:'官方主阵地',note:'官方号，引流分3倍，核心指标=加好友'},
       {id:'acc_hengbai',name:'恒白',type:'self',rate:1,holder:'小艺',owner:'小艺',active:true,persona:'413分·408单科130分高分学长',note:'自营号主力军，核心指标=进群'},
       {id:'acc_buling',name:'布灵布灵女王',type:'self',rate:1,holder:'小艺',owner:'小艺',active:false,persona:'自营号',note:'长期停更'},
       {id:'acc_linYu',name:'临屿',type:'self',rate:1,holder:'小艺',owner:'小艺',active:false,persona:'自营号',note:'暂无量身定位，未发'},
@@ -301,27 +452,18 @@
       T('8.3-8.4','2026-08-03','acc_off',7),T('8.3-8.4','2026-08-03','acc_hengbai',7),T('8.3-8.4','2026-08-03','acc_ddy',8),T('8.3-8.4','2026-08-03','acc_qing',1),T('8.3-8.4','2026-08-03','acc_wanzi',7),
       T('8.5-8.9','2026-08-05','acc_off',78),T('8.5-8.9','2026-08-05','acc_hengbai',4),T('8.5-8.9','2026-08-05','acc_ddy',8),T('8.5-8.9','2026-08-05','acc_qing',1),T('8.5-8.9','2026-08-05','acc_wanzi',0)
     ];
-    var groups=[
-      {id:uid(),name:'27 59群',member:101,owner:'宇天派哥',addFriend:101,convertOwner:'宇天派哥',cat:'27考研'},
-      {id:uid(),name:'27 58群',member:105,owner:'宇天希哥',addFriend:105,convertOwner:'宇天希哥',cat:'27考研'},
-      {id:uid(),name:'27 57群',member:107,owner:'宇天派哥',addFriend:107,convertOwner:'宇天派哥',cat:'27考研'},
-      {id:uid(),name:'27 56群',member:100,owner:'宇天希哥',addFriend:100,convertOwner:'宇天希哥',cat:'27考研'},
-      {id:uid(),name:'27 55群',member:106,owner:'宇天派哥',addFriend:106,convertOwner:'宇天派哥',cat:'27考研'},
-      {id:uid(),name:'27 54群',member:146,owner:'宇天希哥',addFriend:146,convertOwner:'宇天希哥',cat:'27考研'},
-      {id:uid(),name:'27 53群',member:104,owner:'宇天派哥',addFriend:104,convertOwner:'宇天派哥',cat:'27考研'},
-      {id:uid(),name:'27 52群',member:72,owner:'宇天希哥',addFriend:72,convertOwner:'宇天希哥',cat:'27考研'}
-    ];
+    var groups=seedGroups();
     var materials=[
       {id:uid(),name:'26考研数据结构强化课程',type:'课程',audience:'26',status:'已放',version:'v1',obtain:'进群',intro:'数据结构强化专题，Q老师主讲，实战应试向'},
       {id:uid(),name:'26考研计组强化课程',type:'课程',audience:'26',status:'已放',version:'v1',obtain:'进群',intro:'计算机组成原理强化，含高频考点切片'},
       {id:uid(),name:'27考研算法集训营',type:'课程',audience:'27',status:'已放',version:'v1',obtain:'进群',intro:'算法代码题攻坚，敢写敢套模板'},
-      {id:uid(),name:'数据结构每日一题汇总版',type:'汇总',audience:'通用',status:'已放',version:'2026.08',obtain:'进群',intro:'每日一题持续沉淀汇总'},
-      {id:uid(),name:'计组每日一题汇总版',type:'汇总',audience:'通用',status:'已放',version:'2026.08',obtain:'进群',intro:''},
-      {id:uid(),name:'操作系统每日一题汇总版',type:'汇总',audience:'通用',status:'已放',version:'2026.08',obtain:'进群',intro:''},
+      {id:uid(),name:'数据结构每日一题汇总版',type:'其他',audience:'通用',status:'已放',version:'2026.08',obtain:'进群',intro:'每日一题持续沉淀汇总'},
+      {id:uid(),name:'计组每日一题汇总版',type:'其他',audience:'通用',status:'已放',version:'2026.08',obtain:'进群',intro:''},
+      {id:uid(),name:'操作系统每日一题汇总版',type:'其他',audience:'通用',status:'已放',version:'2026.08',obtain:'进群',intro:''},
       {id:uid(),name:'真题分类(选择题)',type:'真题',audience:'通用',status:'已放',version:'v2',obtain:'加微',intro:'按考点分类的历年选择真题'},
-      {id:uid(),name:'算法练习册',type:'练习',audience:'27',status:'待放',version:'',obtain:'加微',intro:'算法专项练习，配精讲'},
-      {id:uid(),name:'王道课后大题必刷筛选汇总',type:'练习',audience:'通用',status:'已放',version:'',obtain:'进群',intro:'剔除非重点，只刷必考大题'},
-      {id:uid(),name:'130分高分学长·近三年真题分析文档',type:'文档',audience:'通用',status:'已放',version:'',obtain:'加微',intro:'近三年真题逐题拆解与得分点'}
+      {id:uid(),name:'算法练习册',type:'习题册',audience:'27',status:'待放',version:'',obtain:'加微',intro:'算法专项练习，配精讲'},
+      {id:uid(),name:'王道课后大题必刷筛选汇总',type:'习题册',audience:'通用',status:'已放',version:'',obtain:'进群',intro:'剔除非重点，只刷必考大题'},
+      {id:uid(),name:'130分高分学长·近三年真题分析文档',type:'其他',audience:'通用',status:'已放',version:'',obtain:'加微',intro:'近三年真题逐题拆解与得分点'}
     ];
     // 预置选题库（我直接生成的 27考研 强化末期→冲刺 选题，供挑选）
     var topics=[
@@ -365,14 +507,177 @@
       meta:{currentPeriod:'p_0805',examDate:'2026-12-26',examName:'27考研'},
       accounts:accounts, periods:periods, traffic:traffic, groups:groups, materials:materials,
       topics:topics,
-      drafts:[], publishes:[], reviews:[], qa:[], files:[]
+      drafts:[], publishes:[], reviews:[], qa:[], files:[],
+      topicAuto:{last:'',idx:0}
     };
   }
   function t(){return null;}
+  // 选题储备池：每周自动放出若干条到选题库（字段同 topic 数据模型，forAccount 默认为通用）
+  var TOPIC_POOL=[
+    {title:'408四科时间分配：强化末期每天怎么切',angle:'给四科抢时间的可执行切片',subject:'通用',stage:'强化末期',pain:'四科抢时间',audience:'27'},
+    {title:'线性表：顺序表vs链表，什么时候用哪个',angle:'按场景给决策表',subject:'408',stage:'强化末期',pain:'选型懵',audience:'27'},
+    {title:'栈和队列：用栈实现递归与表达式求值套路',angle:'手推步骤模板',subject:'408',stage:'强化末期',pain:'递归转栈乱',audience:'27'},
+    {title:'二叉树遍历全解：前中后序+层序手推',angle:'画树一步一步推',subject:'408',stage:'强化末期',pain:'遍历老错',audience:'27'},
+    {title:'平衡二叉树AVL：四种旋转一张图',angle:'LL/LR/RL/RR对比',subject:'408',stage:'强化末期',pain:'旋转分不清',audience:'27'},
+    {title:'图最短路径：Dijkstra vs Floyd 区别与手算',angle:'适用场景+手算流程',subject:'408',stage:'强化末期',pain:'两算法混',audience:'27'},
+    {title:'最小生成树：Prim vs Kruskal 怎么选',angle:'稠密/稀疏图决策',subject:'408',stage:'强化末期',pain:'选错算法',audience:'27'},
+    {title:'十大排序算法：时间复杂度+稳定性对比表',angle:'一张表背下来',subject:'408',stage:'强化末期',pain:'复杂度记混',audience:'27'},
+    {title:'快速排序手推全过程（408常考）',angle:'partition 每步画',subject:'408',stage:'真题冲刺',pain:'手推卡壳',audience:'27'},
+    {title:'散列表：冲突处理+装填因子计算',angle:'开放定址/拉链法对比',subject:'408',stage:'强化末期',pain:'装填因子算错',audience:'27'},
+    {title:'堆排序与优先队列',angle:'建堆+调堆步骤',subject:'408',stage:'强化末期',pain:'堆乱',audience:'27'},
+    {title:'KMP next数组手算三步法',angle:'前缀函数速算',subject:'408',stage:'强化末期',pain:'next算不出',audience:'27'},
+    {title:'B树与B+树：插入分裂怎么画',angle:'阶m的分裂条件',subject:'408',stage:'真题冲刺',pain:'分裂错',audience:'27'},
+    {title:'计组：原反补移码，为什么用补码',angle:'减法变加法原理',subject:'408',stage:'强化末期',pain:'补码不懂',audience:'27'},
+    {title:'浮点数IEEE754：阶码尾数怎么排',angle:'规格化步骤',subject:'408',stage:'强化末期',pain:'位数排错',audience:'27'},
+    {title:'Cache映射：直接/全相联/组相联对比',angle:'三种映射一张表',subject:'408',stage:'强化末期',pain:'映射混淆',audience:'27'},
+    {title:'Cache命中率计算题套路',angle:'命中/缺失公式套用',subject:'408',stage:'真题冲刺',pain:'命中率算错',audience:'27'},
+    {title:'指令流水线：吞吐率/加速比/瓶颈段',angle:'时空图画法',subject:'408',stage:'真题冲刺',pain:'吞吐率错',audience:'27'},
+    {title:'CISC vs RISC 核心区别',angle:'指令/周期/寻址对比',subject:'408',stage:'强化末期',pain:'区别记不住',audience:'27'},
+    {title:'CPU数据通路：单总线vs多总线',angle:'数据流向画一遍',subject:'408',stage:'强化末期',pain:'通路懵',audience:'27'},
+    {title:'存储器层次：SRAM/DRAM/ROM怎么记',angle:'速度/volatile对比',subject:'408',stage:'强化末期',pain:'记混',audience:'27'},
+    {title:'中断与异常的处理流程',angle:'现场保护到返回',subject:'408',stage:'强化末期',pain:'流程乱',audience:'27'},
+    {title:'I/O方式：程序查询/中断/DMA对比',angle:'CPU干预程度排序',subject:'408',stage:'强化末期',pain:'三种混',audience:'27'},
+    {title:'OS：进程vs线程到底差在哪',angle:'资源/调度对比',subject:'408',stage:'强化末期',pain:'概念混',audience:'27'},
+    {title:'信号量P/V操作：生产者消费者经典题',angle:'PV套用模板',subject:'408',stage:'真题冲刺',pain:'PV写错',audience:'27'},
+    {title:'死锁：四必要条件+银行家算法',angle:'安全序列手算',subject:'408',stage:'真题冲刺',pain:'银行家不会',audience:'27'},
+    {title:'内存管理：分页vs分段',angle:'地址结构对比',subject:'408',stage:'强化末期',pain:'两概念混',audience:'27'},
+    {title:'页面置换算法：LRU/FIFO/OPT手算',angle:'缺页次数怎么数',subject:'408',stage:'真题冲刺',pain:'缺页算错',audience:'27'},
+    {title:'虚拟内存：局部性原理怎么考',angle:'时间/空间局部性举例',subject:'408',stage:'强化末期',pain:'原理空',audience:'27'},
+    {title:'磁盘调度：FCFS/SSTF/SCAN',angle:'寻道时间计算',subject:'408',stage:'强化末期',pain:'调度选错',audience:'27'},
+    {title:'计网：OSI vs TCP/IP模型每层干啥',angle:'逐层功能口诀',subject:'408',stage:'强化末期',pain:'层记混',audience:'27'},
+    {title:'TCP三次握手四次挥手',angle:'状态迁移图',subject:'408',stage:'真题冲刺',pain:'挥手记错',audience:'27'},
+    {title:'TCP可靠传输：滑动窗口与拥塞控制',angle:'慢开始/拥塞避免',subject:'408',stage:'真题冲刺',pain:'控制混',audience:'27'},
+    {title:'UDP vs TCP 区别一张表',angle:'面向连接/可靠对比',subject:'408',stage:'强化末期',pain:'区别空',audience:'27'},
+    {title:'子网划分CIDR：怎么算网络号',angle:'掩码与块大小',subject:'408',stage:'真题冲刺',pain:'子网不会',audience:'27'},
+    {title:'HTTP vs HTTPS 区别',angle:'加密/证书一句话',subject:'408',stage:'强化末期',pain:'区别浅',audience:'27'},
+    {title:'ARP/DHCP/DNS 三协议串讲',angle:'各自解决啥问题',subject:'408',stage:'强化末期',pain:'协议混',audience:'27'},
+    {title:'408代码题：PV操作拿满分模板',angle:'审题→变量→PV顺序',subject:'408',stage:'真题冲刺',pain:'代码题不敢写',audience:'27'},
+    {title:'408真题大题答题模板',angle:'步骤分怎么拿',subject:'通用',stage:'真题冲刺',pain:'大题没章法',audience:'27'},
+    {title:'王道 vs 教材怎么搭配不浪费',angle:'主线+查漏用法',subject:'通用',stage:'强化末期',pain:'资料堆砌',audience:'27'},
+    {title:'强化末期避坑：这5件事别做',angle:'反向清单降焦虑',subject:'通用',stage:'强化末期',pain:'信息过载',audience:'27'},
+    {title:'错题复盘法：每周日重做不重看',angle:'可落地复盘表',subject:'通用',stage:'强化末期',pain:'错题只标不看',audience:'27'},
+    {title:'最后30天：查漏补缺回归定义与公式',angle:'冲刺期回归本源',subject:'通用',stage:'冲刺',pain:'冲刺不知抓啥',audience:'27'},
+    {title:'二战408：和一战复习最大的不同',angle:'重心从听转到练',subject:'通用',stage:'强化末期',pain:'二战路径模糊',audience:'27'},
+    {title:'408 130+ 上岸学长踩坑总结',angle:'真实踩坑清单',subject:'通用',stage:'强化末期',pain:'怕走弯路',audience:'27'},
+    {title:'计组"书课不匹配"怎么破',angle:'以题为锚补概念',subject:'408',stage:'强化末期',pain:'书课对不上',audience:'27'},
+    {title:'9月408复习安排表',angle:'月度节奏表',subject:'通用',stage:'强化末期',pain:'月度无计划',audience:'27'},
+    {title:'11月408冲刺安排表',angle:'模考+复盘节奏',subject:'通用',stage:'冲刺',pain:'冲刺无节奏',audience:'27'},
+    {title:'28考研启航：4科时间线总览',angle:'基础阶段每天干啥',subject:'通用',stage:'基础起步',pain:'不知从哪开始',audience:'28'},
+    {title:'数据结构第一轮30-35天规划',angle:'照时间线可执行',subject:'408',stage:'基础起步',pain:'一轮无计划',audience:'28'},
+    {title:'计组一轮先建框架再填细节',angle:'把计组当建筑搭',subject:'408',stage:'基础起步',pain:'计组空中楼阁',audience:'28'},
+    {title:'OS一轮：进程/内存/文件三块怎么串',angle:'一张图串起OS',subject:'408',stage:'基础起步',pain:'OS概念散',audience:'28'},
+    {title:'计网背了就忘？思维导图法',angle:'记忆策略',subject:'408',stage:'基础起步',pain:'计网记不住',audience:'28'},
+    {title:'数学基础：高数→线代→概率时间分配',angle:'按科目给时间线',subject:'数学',stage:'基础起步',pain:'数学无节奏',audience:'28'},
+    {title:'基础阶段刷题＞听课',angle:'纠偏输入>输出',subject:'数学',stage:'基础起步',pain:'只听课不练',audience:'28'},
+    {title:'单词从今天开始：核心词一轮',angle:'记忆曲线+每日新词',subject:'英语',stage:'基础起步',pain:'单词背完就忘',audience:'28'},
+    {title:'政治要不要现在开始：低成本路线',angle:'政治规划',subject:'政治',stage:'基础起步',pain:'政治不知何时启动',audience:'28'},
 
-  /* ---------- 业绩考核积分引擎 ---------- */
+    // ===== 27 考研补充（强化/冲刺/真题阶段，更多角度）=====
+    {title:'408选择题45+：选项排除四步法',angle:'审题+排除套路',subject:'通用',stage:'真题冲刺',pain:'选择丢分',audience:'27'},
+    {title:'408大题步骤分：不会也拿3分的写法',angle:'公式/名词先写上去',subject:'通用',stage:'真题冲刺',pain:'大题空白',audience:'27'},
+    {title:'真题二刷法：按知识点不按年份',angle:'考点归并复习',subject:'通用',stage:'真题冲刺',pain:'二刷无效',audience:'27'},
+    {title:'数据结构代码题：递归写法模板',angle:'递归三要素落地',subject:'408',stage:'真题冲刺',pain:'代码题慌',audience:'27'},
+    {title:'算法复杂度：主定理速判法',angle:'三种情况对照表',subject:'408',stage:'强化末期',pain:'复杂度错',audience:'27'},
+    {title:'计组：数据表示与运算考法汇总',angle:'移位/溢出/符号位',subject:'408',stage:'强化末期',pain:'运算考法散',audience:'27'},
+    {title:'指令系统：七种寻址方式一张表',angle:'有效地址算法',subject:'408',stage:'强化末期',pain:'寻址混',audience:'27'},
+    {title:'总线：带宽与时钟计算题',angle:'公式直接套',subject:'408',stage:'真题冲刺',pain:'总线算错',audience:'27'},
+    {title:'OS调度算法：FCFS/SJF/优先级/轮转',angle:'周转时间计算',subject:'408',stage:'强化末期',pain:'调度算错',audience:'27'},
+    {title:'文件系统：FAT与索引分配',angle:'磁盘块怎么数',subject:'408',stage:'强化末期',pain:'文件alloc乱',audience:'27'},
+    {title:'网络层：距离向量vs链路状态路由',angle:'两种思路对比',subject:'408',stage:'强化末期',pain:'路由混',audience:'27'},
+    {title:'IP首部字段：哪些最常考',angle:'字段作用速记',subject:'408',stage:'强化末期',pain:'首部空',audience:'27'},
+    {title:'408核心概念一句话速记卡',angle:'高频名词一页纸',subject:'通用',stage:'强化末期',pain:'概念多',audience:'27'},
+    {title:'强化末期每天学几小时不崩',angle:'精力曲线排课',subject:'通用',stage:'强化末期',pain:'时间焦虑',audience:'27'},
+    {title:'二战408：哪些坑今年绝对别踩',angle:'重者恒重清单',subject:'通用',stage:'强化末期',pain:'重复犯错',audience:'27'},
+    {title:'408模考怎么用：分数≠实力',angle:'模考定位法',subject:'通用',stage:'真题冲刺',pain:'模考焦虑',audience:'27'},
+    {title:'最后两周只做这三件事',angle:'收敛清单',subject:'通用',stage:'冲刺',pain:'冲刺散',audience:'27'},
+    {title:'考场180分钟：408时间分配',angle:'选择/大题时间块',subject:'通用',stage:'冲刺',pain:'做不完',audience:'27'},
+    {title:'跨考408：零基础如何不劝退',angle:'分科入门路径',subject:'通用',stage:'基础起步',pain:'跨考恐惧',audience:'27'},
+
+    // ===== 28 考研补充（从9条扩到约30条，覆盖全年）=====
+    {title:'28考研：现在准备408早不早',angle:'早鸟优势清单',subject:'通用',stage:'基础起步',pain:'启动时机焦虑',audience:'28'},
+    {title:'28跨考408：可行性自评清单',angle:'本科背景对照',subject:'通用',stage:'基础起步',pain:'跨考犹豫',audience:'28'},
+    {title:'28考研四科教材/资料怎么选',angle:'主线+补充搭配',subject:'通用',stage:'基础起步',pain:'资料选择难',audience:'28'},
+    {title:'28考研：王道书怎么用不浪费',angle:'读书+做题节奏',subject:'408',stage:'基础起步',pain:'书太厚',audience:'28'},
+    {title:'数据结构：复杂度先搞懂再刷题',angle:'O记号直觉培养',subject:'408',stage:'基础起步',pain:'复杂度懵',audience:'28'},
+    {title:'算法入门：递归思想怎么建立',angle:'自顶向下理解',subject:'408',stage:'基础起步',pain:'递归难懂',audience:'28'},
+    {title:'计组入门：计算机怎么"算"数',angle:'从门电路到CPU轮廓',subject:'408',stage:'基础起步',pain:'计组抽象',audience:'28'},
+    {title:'OS入门：为什么要有操作系统',angle:'资源管理视角',subject:'408',stage:'基础起步',pain:'OS玄学',audience:'28'},
+    {title:'计网入门：数据怎么从A到B',angle:'分层通信直觉',subject:'408',stage:'基础起步',pain:'计网散',audience:'28'},
+    {title:'28考研：数学和408如何平衡',angle:'每日时间切分',subject:'数学',stage:'基础起步',pain:'两科抢时间',audience:'28'},
+    {title:'28考研全年时间线（备考日历）',angle:'月级节奏图',subject:'通用',stage:'基础起步',pain:'无全局观',audience:'28'},
+    {title:'28考研：夏令营/择校要提前看吗',angle:'早规划降风险',subject:'通用',stage:'基础起步',pain:'择校信息差',audience:'28'},
+    {title:'本科基础差：408先补哪一块',angle:'补基础优先级',subject:'408',stage:'基础起步',pain:'基础弱',audience:'28'},
+    {title:'英语：长难句每日一句练法',angle:'拆句+翻译',subject:'英语',stage:'基础起步',pain:'阅读卡',audience:'28'},
+    {title:'政治：28考研何时启动不浪费',angle:'低成本政治线',subject:'政治',stage:'基础起步',pain:'政治时机',audience:'28'},
+    {title:'28考研：刷题站怎么用最高效',angle:'按知识点刷不盲刷',subject:'通用',stage:'基础起步',pain:'刷题无方',audience:'28'},
+    {title:'数据结构第一轮：代码题从抄开始',angle:'模仿→独立写',subject:'408',stage:'基础起步',pain:'代码题怵',audience:'28'},
+    {title:'28早鸟：每天2小时也能推进',angle:'碎片化可行方案',subject:'通用',stage:'基础起步',pain:'没整块时间',audience:'28'},
+    {title:'28早鸟营：数据结构抢跑计划',angle:'周级任务卡',subject:'408',stage:'基础起步',pain:'不知练啥',audience:'28'},
+    {title:'28考研：要不要报全程班',angle:'自学vs跟班对照',subject:'通用',stage:'基础起步',pain:'报班纠结',audience:'28'},
+    {title:'28抢跑：强化阶段提前怎么安排',angle:'抢跑不冒进',subject:'通用',stage:'强化末期',pain:'抢跑焦虑',audience:'28'},
+    {title:'数据结构强化：树与图专题突破',angle:'高频考点清单',subject:'408',stage:'强化末期',pain:'树图弱',audience:'28'},
+    {title:'28考研：本校学长经验怎么借鉴',angle:'经验去水分',subject:'通用',stage:'基础起步',pain:'经验真假难辨',audience:'28'},
+    {title:'计网背诵：每层的协议一句话',angle:'协议归属速记',subject:'408',stage:'基础起步',pain:'协议记不住',audience:'28'},
+    {title:'28考研：信息差怎么补（免费渠道）',angle:'信息源清单',subject:'通用',stage:'基础起步',pain:'信息闭塞',audience:'28'}
+  ];
+
+  // ===== 别人的链接（guest）专属选题池：独立、更多条、与自己的选题库不同 =====
+  var GUEST_TOPIC_POOL=[
+    {title:'408全年复习规划：从0到130的时间轴',angle:'月度里程碑',subject:'通用',stage:'强化末期',pain:'无全局规划',audience:'27'},
+    {title:'数据结构：数组/链表/栈/队列一张图',angle:'结构对比图',subject:'408',stage:'强化末期',pain:'基础概念混',audience:'27'},
+    {title:'二叉树：四种遍历手画练习册',angle:'边画边记',subject:'408',stage:'强化末期',pain:'遍历易错',audience:'27'},
+    {title:'图论入门：邻接矩阵vs邻接表',angle:'两种存储对比',subject:'408',stage:'强化末期',pain:'存储选错',audience:'27'},
+    {title:'排序算法：什么时候用快排/归并/堆排',angle:'场景决策表',subject:'408',stage:'强化末期',pain:'排序乱用',audience:'27'},
+    {title:'散列表：装填因子与冲突解决',angle:'开放定址vs拉链',subject:'408',stage:'强化末期',pain:'装填因子错',audience:'27'},
+    {title:'字符串匹配：KMP到底解决啥',angle:'前缀函数直觉',subject:'408',stage:'强化末期',pain:'KMP难懂',audience:'27'},
+    {title:'计组：定点数与浮点数的表示',angle:'位级拆解',subject:'408',stage:'强化末期',pain:'表示法混',audience:'27'},
+    {title:'存储系统：Cache-主存-辅存层级',angle:'层级速度表',subject:'408',stage:'强化末期',pain:'层级记混',audience:'27'},
+    {title:'指令流水线：吞吐率怎么算',angle:'时空图模板',subject:'408',stage:'真题冲刺',pain:'吞吐率错',audience:'27'},
+    {title:'CPU：五段流水时空图',angle:'逐步画',subject:'408',stage:'真题冲刺',pain:'时空图乱',audience:'27'},
+    {title:'总线与I/O：中断vs DMA',angle:'CPU干预对比',subject:'408',stage:'强化末期',pain:'两种混',audience:'27'},
+    {title:'OS：进程状态转换图',angle:'五态流转',subject:'408',stage:'强化末期',pain:'状态乱',audience:'27'},
+    {title:'线程与协程：现代并发基础',angle:'轻量对比',subject:'408',stage:'基础起步',pain:'概念新',audience:'27'},
+    {title:'内存管理：虚拟地址到物理地址',angle:'地址翻译步',subject:'408',stage:'强化末期',pain:'翻译错',audience:'27'},
+    {title:'页面置换：缺页中断全过程',angle:'中断流程',subject:'408',stage:'真题冲刺',pain:'缺页算错',audience:'27'},
+    {title:'文件系统：从路径到磁盘块',angle:'查找路径',subject:'408',stage:'强化末期',pain:'文件alloc乱',audience:'27'},
+    {title:'死锁：banker算法手算',angle:'安全序列',subject:'408',stage:'真题冲刺',pain:'银行家不会',audience:'27'},
+    {title:'计网：TCP可靠传输机制',angle:'确认+重传',subject:'408',stage:'强化末期',pain:'机制空',audience:'27'},
+    {title:'HTTP/HTTPS/HTTP2 演进',angle:'一眼对比',subject:'408',stage:'强化末期',pain:'版本混',audience:'27'},
+    {title:'DNS/ARP/DHCP 网络三件套',angle:'各司其职',subject:'408',stage:'强化末期',pain:'协议混',audience:'27'},
+    {title:'408选择题提速：题干关键词',angle:'关键词定位',subject:'通用',stage:'真题冲刺',pain:'选择慢',audience:'27'},
+    {title:'408大题：公式分怎么稳拿',angle:'必写公式清单',subject:'通用',stage:'真题冲刺',pain:'大题空白',audience:'27'},
+    {title:'真题套卷：限时模考节奏',angle:'3小时切分',subject:'通用',stage:'冲刺',pain:'做不完',audience:'27'},
+    {title:'错题本：按错误类型归档',angle:'错因分类表',subject:'通用',stage:'强化末期',pain:'错题乱',audience:'27'},
+    {title:'二战复盘：哪些时间花错了',angle:'时间审计',subject:'通用',stage:'强化末期',pain:'重复犯错',audience:'27'},
+    {title:'9/10/11月月度重点切换',angle:'月级清单',subject:'通用',stage:'强化末期',pain:'月度无重点',audience:'27'},
+    {title:'心态管理：焦虑时做什么',angle:'可执行清单',subject:'通用',stage:'冲刺',pain:'焦虑内耗',audience:'27'},
+    {title:'28考研：要不要现在开始',angle:'早鸟优势',subject:'通用',stage:'基础起步',pain:'启动焦虑',audience:'28'},
+    {title:'跨考408：本科非CS怎么补',angle:'补基础路径',subject:'通用',stage:'基础起步',pain:'跨考恐惧',audience:'28'},
+    {title:'408四科先学哪科',angle:'学习顺序',subject:'通用',stage:'基础起步',pain:'顺序纠结',audience:'28'},
+    {title:'数据结构：复杂度O记号直觉',angle:'量级感知',subject:'408',stage:'基础起步',pain:'复杂度懵',audience:'28'},
+    {title:'算法入门：递归与分治',angle:'自顶向下',subject:'408',stage:'基础起步',pain:'递归难',audience:'28'},
+    {title:'计组：从晶体管到CPU',angle:'硬件轮廓',subject:'408',stage:'基础起步',pain:'计组抽象',audience:'28'},
+    {title:'OS：为什么需要操作系统',angle:'资源管理',subject:'408',stage:'基础起步',pain:'OS玄学',audience:'28'},
+    {title:'计网：分组交换怎么理解',angle:'分组流转',subject:'408',stage:'基础起步',pain:'计网散',audience:'28'},
+    {title:'数学与408：每日时间配比',angle:'时间切分',subject:'数学',stage:'基础起步',pain:'两科抢时间',audience:'28'},
+    {title:'英语单词：考研核心词计划',angle:'词表拆分',subject:'英语',stage:'基础起步',pain:'单词忘',audience:'28'},
+    {title:'政治：早启动低成本路线',angle:'政治时间线',subject:'政治',stage:'基础起步',pain:'政治时机',audience:'28'},
+    {title:'教材怎么选：王道/教材/视频',angle:'搭配方案',subject:'通用',stage:'基础起步',pain:'资料多',audience:'28'},
+    {title:'笔记法：康奈尔笔记用起来',angle:'模板落地',subject:'通用',stage:'基础起步',pain:'不会记',audience:'28'},
+    {title:'番茄钟：每天高效4小时',angle:'节奏训练',subject:'通用',stage:'基础起步',pain:'效率低',audience:'28'},
+    {title:'信息源：哪些博主值得跟',angle:'筛选清单',subject:'通用',stage:'基础起步',pain:'信息杂',audience:'28'},
+    {title:'择校：408院校梯度',angle:'梯度分层',subject:'通用',stage:'基础起步',pain:'择校难',audience:'28'},
+    {title:'夏令营：大三暑假怎么准备',angle:'时间规划',subject:'通用',stage:'基础起步',pain:'准备晚',audience:'28'},
+    {title:'基础阶段：一轮复习检查清单',angle:'自查表',subject:'通用',stage:'基础起步',pain:'不知进度',audience:'28'},
+    {title:'28早鸟：数据结构抢跑30天',angle:'周级任务',subject:'408',stage:'基础起步',pain:'不知练啥',audience:'28'},
+    {title:'学习习惯：如何不拖延',angle:'微习惯法',subject:'通用',stage:'基础起步',pain:'拖延',audience:'28'},
+    {title:'复习节奏：周计划与日计划',angle:'计划模板',subject:'通用',stage:'基础起步',pain:'计划空',audience:'28'},
+    {title:'答疑闭环：问题不过夜',angle:'答疑SOP',subject:'通用',stage:'基础起步',pain:'问题堆积',audience:'28'}
+  ];
+
+  /* ---------- 引流人数统计引擎 ---------- */
   function accById(id){var a=APP.data.accounts;for(var i=0;i<a.length;i++)if(a[i].id===id)return a[i];return null;}
-  function typeLabel(t){if(t&&typeof t==='object')return t.cat||(t.type==='official'?'官方号':(t.type==='self'?'自营号':'高分学长学姐号'));var x=t;return x==='official'?'官方号':(x==='self'?'自营号':'高分学长学姐号');}
+  function typeLabel(t){if(t&&typeof t==='object')return t.cat||(t.type==='official'?'官方号':(t.type==='self'?'自营号':'兼职号'));var x=t;return x==='official'?'官方号':(x==='self'?'自营号':'兼职号');}
   function convertOwnerOf(name){
     var m=String(name||'').match(/(\d+)\D*$/);
     if(!m)return '—';
@@ -382,9 +687,17 @@
   // 单条记录的"引流数"：官号=加好友，自营/兼职=进群
   function recNum(rec){var a=accById(rec.accountId);if(!a)return 0;return a.type==='official'?(Number(rec.addFriend)||0):(Number(rec.join)||0);}
   function scoreOf(rec){var a=accById(rec.accountId);if(!a)return 0;return recNum(rec)*a.rate;}
+  // 某类账号的倍率显示文案：同倍率显示 ×N；异构则显示"按账号倍率"（加权人数计算始终按各账号真实倍率）
+  function rateLabelOf(type){
+    var accs=APP.data.accounts.filter(function(a){return a.type===type;});
+    if(!accs.length)return '按账号倍率';
+    var rs=accs.map(function(a){return Number(a.rate||1);});
+    var allSame=rs.every(function(r){return r===rs[0];});
+    return allSame?('×'+rs[0]):'按账号倍率';
+  }
   function getPeriod(pid){return APP.data.periods.filter(function(x){return x.id===pid;})[0];}
   // 当前统计月度 key（YYYY-MM，跟随 today）：每月5号~次月5号为一个统计月度
-  function currentMonthKey(){var d=new Date();return d.getFullYear()+'-'+pad2(d.getMonth()+1);}
+  function currentMonthKey(){return pidToMonthKey(pidOf(today()));}
   // 当前统计月度对应的 period id（today 落在哪个 5号~次月5号 区间）
   function currentMonthPid(){
     var t=today();
@@ -407,7 +720,7 @@
   // 该记录是否落在某考核周期内（按 cstart 起始日判断）
   function inPeriod(r,p){if(!p)return false;var c=r.cstart||cycleStart(r.cycle);return c>=p.start&&c<p.end;}
   function periodRecs(pid){var p=getPeriod(pid);return APP.data.traffic.filter(function(r){return inPeriod(r,p);});}
-  // 按当前周期汇总三类引流 + 分数
+  // 按当前周期汇总三类引流 + 加权人数
   function periodScore(pid){
     var recs=periodRecs(pid);
     var off={join:0,score:0},self={join:0,score:0},pt={join:0,score:0};
@@ -440,6 +753,19 @@
       addFriend:APP.data.traffic.reduce(function(s,r){return s+(Number(r.addFriend)||0);},0)};
     function rd(o){o.score=Math.round(o.score);return o;}
   }
+  // 从任意记录数组计算三类加权人数（用于日历月份筛选后的统计）
+  function scoreFromRecs(recs){
+    var off={join:0,score:0},self={join:0,score:0},pt={join:0,score:0};
+    recs.forEach(function(r){
+      var a=accById(r.accountId); if(!a)return; var j=recNum(r);
+      if(a.type==='official'){off.join+=j;off.score+=j*a.rate;}
+      else if(a.type==='self'){self.join+=j;self.score+=j*a.rate;}
+      else {pt.join+=j;pt.score+=j*a.rate;}
+    });
+    return {off:rd(off),self:rd(self),pt:rd(pt),total:Math.round(off.score+self.score+pt.score),
+      addFriend:recs.reduce(function(s,r){return s+(Number(r.addFriend)||0);},0)};
+    function rd(o){o.score=Math.round(o.score);return o;}
+  }
   // 解析统计周期标签的起始日（用于周期归属与排序）。'8.5-8.9'->2026-08-05；也兼容完整日期
   function cycleStart(cycle){
     var s=String(cycle||'').trim();
@@ -460,7 +786,7 @@
     {key:'accounts',label:'账号管理',icon:I.acc},
     {key:'backup',label:'数据备份',icon:I.backup}
   ];
-  APP.state={view:'dashboard',sub:'topics',topicAudience:'27',topicStage:'全部',heatRange:'week',trafficTab:'table',matType:'全部',tfPeriod:'',tfMonth:'all',tfAcc:'all',privYear:'all',privConsult:'all',accTypeFilter:'all'};
+  APP.state={view:'dashboard',sub:'topics',topicAudience:'全部',topicStage:'全部',heatRange:'week',trafficTab:'table',matType:'全部',tfPeriod:'',tfMonth:'all',tfAcc:'all',privYear:'all',privConsult:'all',accTypeFilter:'all',pubRange:'all',pubSort:'date_desc',pubHot:false,pubHighView:false};
 
   function renderNav(){
     var m=$('#menu'); m.innerHTML=NAV.map(function(n){
@@ -487,7 +813,7 @@
     if(v==='content')return '选题库 · 写稿 · 发布 · 复盘';
     if(v==='traffic')return '按周记录（每月5号~次月5号为一统计月度），自动算业绩分';
     if(v==='private')return '群 → 一对一加好友(转私域深度)';
-    if(v==='materials')return '外化资料库 + 答疑知识库';
+    if(v==='materials')return '外化资料库 + 资料文件';
     if(v==='accounts')return '账号档案 · 类型/持有者/负责人/人设/状态';
     if(v==='backup')return '导出/导入/清空';
     return '';
@@ -534,28 +860,28 @@
       '<button class="btn sm" data-go="content">看选题</button></div>';
     focus+='</div>';
 
+    var grandJoin=sc.off.join+sc.self.join+sc.pt.join;
     var stats=''+
       '<div class="grid g4">'+
-      stat('官方号引流','off',sc.off.join+' 人',sc.off.score+' 分（×3）')+
-      stat('自营号引流','self',sc.self.join+' 人',sc.self.score+' 分（×1）')+
-      stat('兼职号引流','parttime',sc.pt.join+' 人',sc.pt.score+' 分（×1）')+
-      stat('月度总积分','total',sc.total+' 分','加好友 '+sc.addFriend+' 人')+
+      stat('官方号引流','off',sc.off.join+' 人',sc.off.score+' 人（'+rateLabelOf('official')+'）')+
+      stat('自营号引流','self',sc.self.join+' 人',sc.self.score+' 人（'+rateLabelOf('self')+'）')+
+      stat('兼职号引流','parttime',sc.pt.join+' 人',sc.pt.score+' 人（'+rateLabelOf('parttime')+'）')+
+      stat('月度总引流人数','total',grandJoin+' 人','加权合计 '+sc.total+' 人')+
       '</div>';
 
     // 趋势（按统计周期，各号引流）
     var weeks=Object.keys(cyclesDone).sort(function(a,b){return cycleStart(a)<cycleStart(b)?-1:1;});
     var trend=lineChart(weeks,[
-      {name:'官方号',color:'#B6C2CF',vals:weeks.map(function(w){return sumCycle(pid,w,'official');})},
-      {name:'自营号',color:'#97979C',vals:weeks.map(function(w){return sumCycle(pid,w,'self');})},
-      {name:'兼职号',color:'#8C99A8',vals:weeks.map(function(w){return sumCycle(pid,w,'parttime');})}    ]);
-    var bar=barChart(['官方号','自营号','兼职号'],[sc.off.join,sc.self.join,sc.pt.join],['#B6C2CF','#97979C','#8C99A8']);
+      {name:'官方号',color:CH.off,vals:weeks.map(function(w){return sumCycle(pid,w,'official');})},
+      {name:'自营号',color:CH.self,vals:weeks.map(function(w){return sumCycle(pid,w,'self');})},
+      {name:'兼职号',color:CH.pt,vals:weeks.map(function(w){return sumCycle(pid,w,'parttime');})}    ]);
+    var bar=barChart(['官方号','自营号','兼职号'],[sc.off.join,sc.self.join,sc.pt.join],[CH.off,CH.self,CH.pt]);
 
     return focus+
       '<div class="mb">'+stats+'</div>'+
       '<div class="grid g2">'+
         '<div class="card"><h3>'+I.chart+'本月度各号引流趋势（按周）</h3><div class="chartbox">'+trend+'</div></div>'+
         '<div class="card"><h3>'+I.chart+'本月度三类引流对比</h3><div class="chartbox">'+bar+'</div>'+
-          '<div class="kv"><span class="muted">兼职小计（自动）</span><b>'+ptSub+' 人</b></div>'+
           '<div class="kv"><span class="muted">周期</span><b>'+(p?esc(p.start)+' ~ '+esc(p.end):'-')+'</b></div>'+
         '</div>'+
       '</div>'+
@@ -565,10 +891,11 @@
       '</div>';
   }
   function stat(k,cls,v,x){return '<div class="stat '+cls+'"><div class="k">'+k+'</div><div class="v">'+v+'</div><div class="x">'+x+'</div></div>';}
-  // 周期汇总小卡：人数 + 对应分数（分数可为空字符串）
-  function smini(k,v,score,color){
+  // 周期汇总小卡：人数 + 对应加权人数（加权人数可为空字符串）
+  function smini(k,v,score,color,unit){
+    if(!unit)unit=' 人';
     return '<div class="smini" style="border-left:3px solid '+color+'"><div class="k">'+k+'</div>'+
-      '<div class="v">'+v+' 人</div>'+(score!==''?'<div class="x">'+score+' 分</div>':'')+'</div>';
+      '<div class="v">'+v+unit+'</div>'+(score!==''?'<div class="x">'+score+' 人</div>':'')+'</div>';
   }
   function sumCycle(pid,cycle,type){
     return periodRecs(pid).filter(function(r){var a=accById(r.accountId);return r.cycle===cycle&&a&&a.type===type;})
@@ -612,6 +939,23 @@
     var auds=[['27','27考研'],['28','28考研'],['全部','全部']];
     return auds.map(function(a){return '<button class="btn sm ghost'+(APP.state.topicAudience===a[0]?' active':'')+'" data-audience="'+a[0]+'">'+a[1]+'</button>';}).join(' ');
   }
+  // 选题库每周自动补充：从 TOPIC_POOL 按顺序放出若干条（默认每周3条），按最近一次自动补充时间控制节奏
+  function topicAutoRelease(force){
+    if(!APP.data.topicAuto)APP.data.topicAuto={last:'',idx:0};
+    var ta=APP.data.topicAuto, pool=IS_GUEST?GUEST_TOPIC_POOL:TOPIC_POOL, N=IS_GUEST?5:3;
+    if(ta.idx>=pool.length)return {added:0,total:pool.length,remain:0,done:true};
+    var due=force||!ta.last||(daysBetween(ta.last,today())>=7);
+    if(!due)return {added:0,total:pool.length,remain:pool.length-ta.idx,done:false};
+    var added=0;
+    while(added<N&&ta.idx<pool.length){
+      var s=pool[ta.idx++];
+      APP.data.topics.unshift({id:uid(),title:s.title,angle:s.angle,subject:s.subject,stage:s.stage,pain:s.pain,forAccount:'',status:'idea',audience:s.audience||'27',note:'（每周自动补充）',createdAt:today()});
+      added++;
+    }
+    ta.last=today();
+    save();
+    return {added:added,total:pool.length,remain:pool.length-ta.idx,done:ta.idx>=pool.length};
+  }
   function topicsView(){
     var list=APP.data.topics;
     if(APP.state.topicAudience!=='全部'){
@@ -622,6 +966,11 @@
     }
     var c27=APP.data.topics.filter(function(t){return (t.audience||'27')==='27';}).length;
     var c28=APP.data.topics.filter(function(t){return (t.audience||'27')==='28';}).length;
+    var ta=APP.data.topicAuto||{last:'',idx:0};
+    var tpool=IS_GUEST?GUEST_TOPIC_POOL:TOPIC_POOL;
+    var remain=Math.max(0,tpool.length-(ta.idx||0));
+    var lastTxt=ta.last?ta.last:'尚未';
+    var nextTxt=ta.last?fmtDate(new Date(parseDate(ta.last).getTime()+7*86400000)):'（首次打开即补充）';
     var cards='<div class="grid g2">'+list.map(function(t){
       var a=accById(t.forAccount);
       var aud=(t.audience||'27');
@@ -642,7 +991,8 @@
         '</div></div>';
     }).join('')+'</div>';
     return '<div class="row mb"><button class="btn" data-act="topicAdd">'+I.plus+'新增选题</button>'+
-      '<span class="muted small">已预置 '+APP.data.topics.length+' 条选题（27考研 '+c27+' / 28考研 '+c28+'），可直接挑选/推进</span></div>'+
+      '<button class="btn ghost" data-act="topicAutoNow">立即补充选题</button>'+
+      '<span class="muted small">已预置 '+APP.data.topics.length+' 条（27 '+c27+'/28 '+c28+'）· 选题池剩余 '+remain+' 条 · 上次自动补充 '+lastTxt+' · 下次约 '+nextTxt+'</span></div>'+
       '<div class="row mb">'+audienceFilter()+'</div>'+
       '<div class="row mb">'+stageFilter()+'</div>'+cards;
   }
@@ -659,30 +1009,116 @@
           '<button class="btn sm danger" data-act="draftDel" data-id="'+d.id+'">'+I.trash+'</button></div></div>';
       }).join('')+'</div>';
   }
+  function parseDate(s){var p=String(s||'').split('-');return new Date(Number(p[0]),Number(p[1])-1,Number(p[2]||1));}
+  function isHotPost(p){return (Number(p.like||0)>=50)||(Number(p.fav||0)>=50)||(Number(p.comment||0)>=50);}
+  function isHighViewPost(p){return (Number(p.view||0)>=1000)&&(Number(p.like||0)<50)&&(Number(p.fav||0)<50);}
+  function isFlagged(p){return (isHotPost(p)&&!isHighViewPost(p))||isHighViewPost(p);}
+  // 发布帖保存后自动同步到爆款复盘：满足条件则 upsert，不满足则删除自动生成的复盘记录
+  function syncReviewFromPublish(p){
+    var arr=APP.data.reviews||[];
+    var idx=arr.findIndex(function(r){return r.publishId===p.id && r.source==='auto';});
+    if(isFlagged(p)){
+      var st=pubStats(p);
+      var rec={id:idx>=0?arr[idx].id:uid(),title:p.title,publishId:p.id,date:p.date,expose:st.view,interact:st.like+st.fav+st.comment,join:0,note:idx>=0?(arr[idx].note||''):'',source:'auto'};
+      if(idx>=0){arr[idx]=rec;}else{arr.unshift(rec);}
+    }else{
+      if(idx>=0){arr.splice(idx,1);}
+    }
+  }
+  function ymOf(s){var p=String(s||'').split('-');if(p.length<2)return '';var y=p[0],m=p[1];if(!/^\d+$/.test(y)||!/^\d+$/.test(m))return '';return y+'-'+('0'+Number(m)).slice(-2);}
+  function pubStats(p){var a=accById(p.account);var isPT=a&&a.type==='parttime';return {view:Number(p.view||0),like:Number(p.like||0),fav:Number(p.fav||0),comment:Number(p.comment||0),isPT:isPT};}
+  function optPairs(pairs,sel){return pairs.map(function(o){return '<option value="'+o[0]+'"'+(o[0]===sel?' selected':'')+'>'+o[1]+'</option>';}).join('');}
+  // 发布追踪：按当前筛选/排序返回列表（视图与导出共用）
+  function pubList(){
+    var all=APP.data.publishes.slice();
+    all=all.filter(function(p){
+      if(APP.state.pubRange!=='all'&&ymOf(p.date)!==APP.state.pubRange)return false;
+      if(APP.state.pubHot&&!(isHotPost(p)&&!isHighViewPost(p)))return false;
+      if(APP.state.pubHighView&&!isHighViewPost(p))return false;
+      return true;
+    });
+    var s=APP.state.pubSort;
+    all.sort(function(a,b){
+      if(s==='like_desc')return (Number(b.like||0))-(Number(a.like||0));
+      if(s==='fav_desc')return (Number(b.fav||0))-(Number(a.fav||0));
+      if(s==='view_desc')return (Number(b.view||0))-(Number(a.view||0));
+      var ta=parseDate(a.date).getTime(),tb=parseDate(b.date).getTime();
+      if(ta!==tb)return tb-ta;
+      return String(b.id||'').localeCompare(String(a.id||''));
+    });
+    return all;
+  }
+  // CSV 单元格转义（逗号/引号/换行用双引号包裹）
+  function csvCell(v){v=String(v==null?'':v);if(/[",\r\n]/.test(v))return '"'+v.replace(/"/g,'""')+'"';return v;}
   function publishesView(){
-    var arr=APP.data.publishes;
-    if(!arr.length)return '<div class="row mb"><button class="btn" data-act="pubAdd">'+I.plus+'记录发布</button></div><div class="empty">还没有发布记录</div>';
-    return '<div class="row mb"><button class="btn" data-act="pubAdd">'+I.plus+'记录发布</button></div>'+
-      '<div class="list">'+arr.map(function(p){
-        return '<div class="li"><div class="body"><div class="t">'+esc(p.title)+'</div>'+
-          '<div class="m">'+esc(p.date)+' · '+esc(accName(p.account))+(p.link?' · <a href="'+esc(p.link)+'" target="_blank">笔记</a>':'')+'</div></div>'+
+    // 动态生成月份列表（按实际存在的发布月份，升序）
+    var ymMap={};
+    APP.data.publishes.forEach(function(p){var ym=ymOf(p.date);if(ym)ymMap[ym]=1;});
+    var monthList=Object.keys(ymMap).sort();
+    var all=pubList();
+    var sum={view:0,like:0,fav:0,comment:0,hot:0,highview:0};
+    all.forEach(function(p){var st=pubStats(p);if(!st.isPT)sum.view+=st.view;sum.like+=st.like;sum.fav+=st.fav;sum.comment+=st.comment;if(isHotPost(p)&&!isHighViewPost(p))sum.hot++;if(isHighViewPost(p))sum.highview++;});
+    if(!APP.data.publishes.length)return '<div class="row mb"><button class="btn" data-act="pubAdd">'+I.plus+'记录发布</button></div><div class="empty">还没有发布记录</div>';
+    var monthOpts='<option value="all">全部时间</option>'+monthList.map(function(m){return '<option value="'+m+'"'+(APP.state.pubRange===m?' selected':'')+'>'+m.replace('-','年')+'月</option>';}).join('');
+    var rangeLabel=APP.state.pubRange==='all'?'全部':(APP.state.pubRange.replace('-','年')+'月');
+    return '<div class="row mb" style="gap:10px;flex-wrap:wrap;align-items:center">'+
+      '<button class="btn" data-act="pubAdd">'+I.plus+'记录发布</button>'+
+      '<select id="pubRange" class="mini">'+monthOpts+'</select>'+
+      '<select id="pubSort" class="mini">'+optPairs([['date_desc','发布时间（新→旧）'],['like_desc','点赞高→低'],['fav_desc','收藏高→低'],['view_desc','浏览高→低']],APP.state.pubSort)+'</select>'+
+      '<button class="btn ghost'+(APP.state.pubHot?' active':'')+'" data-act="pubHotToggle">🔥 只看爆款</button>'+
+      '<button class="btn ghost'+(APP.state.pubHighView?' active':'')+'" data-act="pubHighViewToggle">📈 只看高浏览</button>'+
+      '<button class="btn ghost" data-act="pubExport">⬇ 导出数据</button>'+
+      '</div>'+
+      '<div class="pub-tip">判定标准：<span class="tag red">🔥爆款</span>= 赞 / 藏 / 评任一 ≥ 50；<span class="tag blue">📈高浏览</span>= 浏览 ≥ 1000 且 赞 &lt; 50 且 藏 &lt; 50。被判定为爆款或高浏览的帖子会自动进入「爆款复盘」。</div>'+
+      '<div class="pub-summary">当前'+rangeLabel+'共 <b>'+all.length+'</b> 篇 · 总浏览 <b>'+formatCount(sum.view)+'</b> · 总点赞 <b>'+formatCount(sum.like)+'</b> · 总收藏 <b>'+formatCount(sum.fav)+'</b> · 总评论 <b>'+formatCount(sum.comment)+'</b> · 爆款 <b>'+sum.hot+'</b> 篇 · 高浏览 <b>'+sum.highview+'</b> 篇</div>'+
+      '<div class="list">'+all.map(function(p){
+        var st=pubStats(p);
+        var urls=extractUrls(p.link), first=urls[0];
+        var linkPart='';
+        if(p.link){linkPart=first?' · <a href="'+esc(first)+'" target="_blank">笔记</a>':' · <span class="muted">未识别到链接</span>';linkPart+=' · <button class="btn sm ghost" data-act="copyLink" data-text="'+esc(p.link)+'">复制文案</button>';}
+        var hot=(isHotPost(p)&&!isHighViewPost(p))?' <span class="tag red">🔥爆款</span>':'';
+        var hv=isHighViewPost(p)?' <span class="tag blue">📈高浏览</span>':'';
+        var viewCell=st.isPT?'<span class="muted">兼职号不统计</span>':'<b>'+formatCount(st.view)+'</b>';
+        return '<div class="li"><div class="body"><div class="t">'+esc(p.title)+hot+hv+'</div>'+
+          '<div class="m">'+esc(p.date)+' · '+esc(accName(p.account))+linkPart+'</div>'+
+          '<div class="m stats">浏览 '+viewCell+' · 点赞 <b>'+formatCount(st.like)+'</b> · 收藏 <b>'+formatCount(st.fav)+'</b> · 评论 <b>'+formatCount(st.comment)+'</b>'+(p.statTime?' · 统计于 '+esc(p.statTime):'')+'</div></div>'+
           '<div class="acts"><button class="btn sm ghost" data-act="pubEdit" data-id="'+p.id+'">'+I.edit+'</button>'+
           '<button class="btn sm danger" data-act="pubDel" data-id="'+p.id+'">'+I.trash+'</button></div></div>';
       }).join('')+'</div>';
   }
   function reviewsView(){
-    var arr=APP.data.reviews;
-    if(!arr.length)return '<div class="empty">发布后可在「爆款复盘」记录单篇曝光/赞藏评/进群</div>';
-    return '<div class="list">'+arr.map(function(r){
-      return '<div class="li"><div class="body"><div class="t">'+esc(r.title)+'</div>'+
-        '<div class="m">曝光 '+esc(r.expose||0)+' · 赞藏评 '+esc(r.interact||0)+' · 进群 '+esc(r.join||0)+'</div></div>'+
+    var arr=APP.data.reviews||[];
+    var head='<div class="row mb"><button class="btn" data-act="revAdd">'+I.plus+'记录复盘</button></div>';
+    var revHtml=arr.length?'<div class="list">'+arr.map(function(r){
+      var pub=r.publishId?find(APP.data.publishes,r.publishId):null;
+      var pubInfo=pub?(' · 关联：'+esc(pub.date)+' '+esc(pub.title)):'';
+      var tag=pub?((isHotPost(pub)&&!isHighViewPost(pub))?' <span class="tag red">🔥爆款</span>':(isHighViewPost(pub)?' <span class="tag blue">📈高浏览</span>':'')):'';
+      return '<div class="li"><div class="body"><div class="t">'+esc(r.title)+tag+'</div>'+
+        '<div class="m">曝光 '+esc(r.expose||0)+' · 赞藏评 '+esc(r.interact||0)+' · 进群 '+esc(r.join||0)+pubInfo+'</div>'+
+        (r.note?'<div class="m" style="white-space:pre-wrap;margin-top:4px">'+esc(r.note)+'</div>':'')+'</div>'+
         '<div class="acts"><button class="btn sm ghost" data-act="revEdit" data-id="'+r.id+'">'+I.edit+'</button>'+
         '<button class="btn sm danger" data-act="revDel" data-id="'+r.id+'">'+I.trash+'</button></div></div>';
-    }).join('')+'</div>';
+    }).join('')+'</div>':'<div class="empty">还没有复盘记录。在「发布追踪」中保存爆款/高浏览帖子，会自动进入此处。</div>';
+    return head+revHtml;
+  }
+  function revForm(rec){
+    rec=rec||{title:'',expose:0,interact:0,join:0,note:'',date:today(),publishId:''};
+    openModal('<h3>'+(rec.id?'编辑复盘':'记录复盘')+'</h3>'+
+      field('帖子标题',inp('rv_title',rec.title))+
+      '<div class="grid2">'+
+        field('曝光量（浏览）',inp('rv_expose',rec.expose))+
+        field('赞藏评合计',inp('rv_interact',rec.interact))+
+        field('进群数',inp('rv_join',rec.join))+
+        field('发布日期',inp('rv_date',rec.date))+
+      '</div>'+
+      field('复盘要点', '<textarea id="rv_note">'+esc(rec.note||'')+'</textarea>')+
+      '<div class="row" style="justify-content:flex-end"><button class="btn ghost" data-x>取消</button><button class="btn" data-act="revSave" data-id="'+(rec.id||'')+'">保存</button></div>');
   }
 
   /* ---------- 引流数据 + 业绩 ---------- */
   function pad2(n){return (n<10?'0':'')+n;}
+  // 完整日期 -> 月.日（如 2026-08-05 -> 8.5），用于周期标签
+  function formatMD(iso){var p=String(iso||'').split('-');if(p.length<3)return iso;return (parseInt(p[1],10))+'.'+(parseInt(p[2],10));}
   function fmtDate(d){return d.getFullYear()+'-'+pad2(d.getMonth()+1)+'-'+pad2(d.getDate());}
   // 所有统计周期（按起始日排序），每周期跨账号引流合计
   function cycleList(){
@@ -729,7 +1165,7 @@
     return '<div class="card mb"><div class="row mb" style="justify-content:space-between"><h3 style="margin:0">'+I.traffic+'引流热力图</h3>'+
       '<div class="row" style="gap:6px">'+tabs+'</div></div>'+
       '<div class="heat">'+cells+'</div>'+
-      '<div class="heat-legend">少 <i class="h0" style="background:#F4F1EA"></i><i class="h1" style="background:#DBDDDA"></i><i class="h2" style="background:#B6C2CF"></i><i class="h3" style="background:#7C8997"></i><i class="h4" style="background:#56565B"></i> 多</div>'+
+      '<div class="heat-legend">少 <i class="h0"></i><i class="h1"></i><i class="h2"></i><i class="h3"></i><i class="h4"></i> 多</div>'+
       '<div class="small muted mt">本区间引流合计 <b>'+sum+'</b> 人 · 每格显示「周 / 该周引流总数」（官号计加好友，其余计进群）</div></div>';
   }
   /* ---------- 引流图表 ---------- */
@@ -746,41 +1182,41 @@
       else weeks[c].pt+=Number(r.join||0);
     });
     var wkList=Object.keys(weeks).sort(function(a,b){return (weeks[a].cstart||'')<(weeks[b].cstart||'')?-1:1;});
-    if(!wkList.length)wkList=['(暂无)'];
+    if(!wkList.length)wkList=['(暂无)'];weeks['(暂无)']={off:0,self:0,pt:0,cstart:''};
     var allVals=[];wkList.forEach(function(w){allVals.push(weeks[w].off,weeks[w].self,weeks[w].pt);});
     var maxV=Math.max(5,Math.max.apply(null,allVals));
     var sx=function(i){return pad.l+i*(iw/Math.max(1,wkList.length-1));};
     var sy=function(v){return pad.t+ih-(v/maxV*ih);};
     var dots=wkList.map(function(w,i){
       var x=sx(wkList.length===1?0.5:i),o=weeks[w].off,s=weeks[w].self,p=weeks[w].pt;
-      return '<circle cx="'+x+'" cy="'+sy(o)+'" r="3.5" fill="#B6C2CF"/>'+
-        '<circle cx="'+x+'" cy="'+sy(s)+'" r="3.5" fill="#97979C"/>'+
-        '<circle cx="'+x+'" cy="'+sy(p)+'" r="3.5" fill="#8C99A8"/>';
+      return '<circle cx="'+x+'" cy="'+sy(o)+'" r="3.5" fill="'+CH.off+'"/>'+
+        '<circle cx="'+x+'" cy="'+sy(s)+'" r="3.5" fill="'+CH.self+'"/>'+
+        '<circle cx="'+x+'" cy="'+sy(p)+'" r="3.5" fill="'+CH.pt+'"/>';
     }).join('');
     var lines='';
     if(wkList.length>1){
       var pOff=wkList.map(function(w,i){return (sx(i)+','+sy(weeks[w].off));}).join(' ');
       var pSelf=wkList.map(function(w,i){return (sx(i)+','+sy(weeks[w].self));}).join(' ');
       var pPt=wkList.map(function(w,i){return (sx(i)+','+sy(weeks[w].pt));}).join(' ');
-      lines='<polyline points="'+pOff+'" fill="none" stroke="#B6C2CF" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"/>'+
-        '<polyline points="'+pSelf+'" fill="none" stroke="#97979C" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"/>'+
-        '<polyline points="'+pPt+'" fill="none" stroke="#8C99A8" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"/>';
+      lines='<polyline points="'+pOff+'" fill="none" stroke="'+CH.off+'" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"/>'+
+        '<polyline points="'+pSelf+'" fill="none" stroke="'+CH.self+'" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"/>'+
+        '<polyline points="'+pPt+'" fill="none" stroke="'+CH.pt+'" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"/>';
     }
     // X轴标签：倾斜放置，避免与图例/其他文字重叠
     var xLabels=wkList.map(function(w,i){
       var x=sx(wkList.length===1?0.5:i);
       var ly=H-pad.b+16;
-      return '<text x="'+x+'" y="'+ly+'" text-anchor="end" font-size="10" fill="#97979C" transform="rotate(32,'+x+','+ly+')">'+esc(w)+'</text>';
+      return '<text x="'+x+'" y="'+ly+'" text-anchor="end" font-size="10" fill="'+CH.axis+'" transform="rotate(32,'+x+','+ly+')">'+esc(w)+'</text>';
     }).join('');
     // Y轴网格线 + 标签
     var yGrid='',yLabels='';
     for(var i=0;i<=4;i++){
       var v=Math.round(maxV*i/4),y=sy(v);
-      yGrid+='<line x1="'+pad.l+'" y1="'+y+'" x2="'+(W-pad.r)+'" y2="'+y+'" stroke="#EEF0ED" stroke-width="1"/>';
-      yLabels+='<text x="'+(pad.l-6)+'" y="'+(y+4)+'" text-anchor="end" font-size="11" fill="#97979C">'+v+'</text>';
+      yGrid+='<line x1="'+pad.l+'" y1="'+y+'" x2="'+(W-pad.r)+'" y2="'+y+'" stroke="'+CH.grid+'" stroke-width="1"/>';
+      yLabels+='<text x="'+(pad.l-6)+'" y="'+(y+4)+'" text-anchor="end" font-size="11" fill="'+CH.axis+'">'+v+'</text>';
     }
     // 图例改为 SVG 外独立 HTML 行，彻底避免与坐标轴/标签重叠
-    var legend='<div style="display:flex;gap:18px;justify-content:center;margin-top:6px;font-size:12px;color:#56565B"><span><i style="display:inline-block;width:10px;height:10px;border-radius:50%;background:#B6C2CF;margin-right:5px;vertical-align:middle"></i>官方号</span><span><i style="display:inline-block;width:10px;height:10px;border-radius:50%;background:#97979C;margin-right:5px;vertical-align:middle"></i>自营号</span><span><i style="display:inline-block;width:10px;height:10px;border-radius:50%;background:#8C99A8;margin-right:5px;vertical-align:middle"></i>兼职号</span></div>';
+    var legend='<div style="display:flex;gap:18px;justify-content:center;margin-top:6px;font-size:12px;color:'+CH.txt+'"><span><i style="display:inline-block;width:10px;height:10px;border-radius:50%;background:'+CH.off+';margin-right:5px;vertical-align:middle"></i>官方号</span><span><i style="display:inline-block;width:10px;height:10px;border-radius:50%;background:'+CH.self+';margin-right:5px;vertical-align:middle"></i>自营号</span><span><i style="display:inline-block;width:10px;height:10px;border-radius:50%;background:'+CH.pt+';margin-right:5px;vertical-align:middle"></i>兼职号</span></div>';
     return '<div class="card"><h3 style="margin:0 0 12px 0;font-size:14px">📈 本月度各号导引流趋势（按周）</h3>'+
       '<svg viewBox="0 0 '+W+' '+H+'" style="width:100%;height:auto;display:block">'+yGrid+yLabels+
       lines+dots+xLabels+'</svg>'+legend+'</div>';
@@ -790,26 +1226,24 @@
     var W=420,H=300,pad={t:40,r:28,b:88,l:28};
     var iw=W-pad.l-pad.r,ih=H-pad.t-pad.b;
     var bars=[
-      {label:'官方号',val:sc.off.join,color:'#B6C2CF'},
-      {label:'自营号',val:sc.self.join,color:'#97979C'},
-      {label:'兼职号',val:sc.pt.join,color:'#8C99A8'}
+      {label:'官方号',val:sc.off.join,color:CH.off},
+      {label:'自营号',val:sc.self.join,color:CH.self},
+      {label:'兼职号',val:sc.pt.join,color:CH.pt}
     ];
     var maxV=Math.max(5,Math.max.apply(null,bars.map(function(b){return b.val;})));
     var bw=iw/bars.length*0.5,gap=iw/bars.length;
     var rects=bars.map(function(b,i){
       var bh=b.val/maxV*ih,x=pad.l+gap*i+(gap-bw)/2,y=pad.t+ih-bh;
       return '<rect x="'+x+'" y="'+y+'" width="'+bw+'" height="'+bh+'" rx="4" fill="'+b.color+'"/>'+
-        '<text x="'+(x+bw/2)+'" y="'+(y-7)+'" text-anchor="middle" font-size="15" font-weight="600" fill="#56565B">'+b.val+'</text>'+
-        '<text x="'+(x+bw/2)+'" y="'+(H-pad.b+24)+'" text-anchor="middle" font-size="12" fill="#56565B">'+b.label+'</text>';
+        '<text x="'+(x+bw/2)+'" y="'+(y-7)+'" text-anchor="middle" font-size="15" font-weight="600" fill="'+CH.txt+'">'+b.val+'</text>'+
+        '<text x="'+(x+bw/2)+'" y="'+(H-pad.b+24)+'" text-anchor="middle" font-size="12" fill="'+CH.txt+'">'+b.label+'</text>';
     }).join('');
     // 底部统计行（SVG 外独立 div，避免与柱底分类标签重叠）
     var ptTotal=sc.pt.join;
     var mKey=APP.state.tfMonth;
     var isAll=(mKey==='all');
-    var pid=isAll?null:monthKeyToPid(mKey);
-    var p=getPeriod(pid||APP.data.meta.currentPeriod);
-    var pRange=p?(p.start+' ~ '+p.end):'-';
-    var footer='<div style="display:flex;justify-content:space-between;font-size:12px;color:#97979C;margin-top:10px;padding:0 4px"><span>兼职小计（自动）　<b style="color:#56565B">'+ptTotal+' 人</b></span><span>周期　<b style="color:#56565B">'+pRange+'</b></span></div>';
+    var mLabel=isAll?'全部':(mKey.substring(0,4)+'年'+Number(mKey.substring(5))+'月');
+    var footer='<div style="display:flex;justify-content:flex-end;font-size:12px;color:'+CH.axis+';margin-top:10px;padding:0 4px"><span>统计月份　<b style="color:'+CH.txt+'">'+mLabel+'</b></span></div>';
     return '<div class="card"><h3 style="margin:0 0 12px 0;font-size:14px">📊 本月度三类引流对比</h3>'+
       '<svg viewBox="0 0 '+W+' '+H+'" style="width:100%;height:auto;display:block">'+rects+'</svg>'+footer+'</div>';
   }
@@ -817,38 +1251,40 @@
   function viewTraffic(){
     var mKey=APP.state.tfMonth;
     var isAll=(mKey==='all');
-    var pid=isAll?null:monthKeyToPid(mKey);
-    var sc=isAll?allTimeScore():periodScore(pid);
+    // 先按统计月度周期过滤（每月5号~次月5号），后续头部/图表/明细统一用这套数据
+    var allTraffic=APP.data.traffic;
+    var monthFiltered=allTraffic;
+    if(!isAll){var mp=getPeriod(monthKeyToPid(mKey));monthFiltered=monthFiltered.filter(function(r){return inPeriod(r,mp);});}
+    // 从过滤后数据算分（保证头部卡片=柱状图=明细表，三处口径一致）
+    var sc=isAll?allTimeScore():scoreFromRecs(monthFiltered);
     var mLabel=isAll?'全部月度':(mKey.substring(0,4)+'年'+Number(mKey.substring(5))+'月');
+    var grandJoin=sc.off.join+sc.self.join+sc.pt.join;
     var head='<div class="grid g4 mb">'+
-      stat('官方号·加好友','official',sc.off.join+' 人',sc.off.score+' 分（×3）')+
-      stat('自营号·进群','self',sc.self.join+' 人',sc.self.score+' 分（×1）')+
-      stat('兼职号·进群','parttime',sc.pt.join+' 人',sc.pt.score+' 分（×1）')+
-      stat('总积分','total',sc.total+' 分',isAll?'全部月度':mLabel)+
+      stat('官方号·加好友','official',sc.off.join+' 人',sc.off.score+' 人（'+rateLabelOf('official')+'）')+
+      stat('自营号·进群','self',sc.self.join+' 人',sc.self.score+' 人（'+rateLabelOf('self')+'）')+
+      stat('兼职号·进群','parttime',sc.pt.join+' 人',sc.pt.score+' 人（'+rateLabelOf('parttime')+'）')+
+      stat('总引流人数','total',grandJoin+' 人',isAll?'全部月度':mLabel)+
       '</div>';
-    // 月度选择（基于 pidOf 周期归属：每月5号~次月5号，不是纯日历月）
+    // 月度选择（按月度周期：用户选"8月"=看8月5号~9月5号的记录）
     var allTraffic=APP.data.traffic;
     var mset={};allTraffic.forEach(function(r){var cs=r.cstart||cycleStart(r.cycle);mset[pidToMonthKey(pidOf(cs))]=1;});
     var months=Object.keys(mset).sort().reverse();
     var curMK=currentMonthKey();if(!mset[curMK]){months.unshift(curMK);}
     var monthOpts='<option value="all"'+(isAll?' selected':'')+'>全部月度</option>'+
       months.map(function(m){return '<option value="'+m+'"'+(mKey===m?' selected':'')+'>'+m.substring(0,4)+'年'+Number(m.substring(5))+'月</option>';}).join('');
-    var grandJoin=sc.off.join+sc.self.join+sc.pt.join;
     var periodInfo='<div class="card mb">'+
       '<div class="row" style="flex-wrap:wrap;gap:10px;margin-bottom:12px"><div class="body" style="flex:1;min-width:220px"><b>统计月度：</b>'+
         '<select id="tfMonth" style="width:auto;display:inline-block">'+monthOpts+'</select>'+
-        '　<span class="muted small">（每月5号~次月5号；默认本月）</span></div>'+
+        '　<span class="muted small">（按月度周期：每月5号~次月5号）</span></div>'+
         '<button class="btn sm ghost" data-act="periodEdit">调整月度边界</button></div>'+
       '<div class="row" style="gap:8px;flex-wrap:wrap">'+
         smini('官方号',sc.off.join,sc.off.score,'var(--official)')+
         smini('自营号',sc.self.join,sc.self.score,'var(--self)')+
         smini('兼职号',sc.pt.join,sc.pt.score,'var(--parttime)')+
-        smini('三类合计人数',grandJoin,'','#B6C2CF')+
-        smini('三类合计分数',sc.total,'','#7C8997')+
+        smini('三类合计人数',grandJoin,'',CH.off)+
+        smini('三类合计加权人数',sc.total,'',CH.txt,' 人')+
       '</div></div>';
-    // 明细筛选：月度（基于pidOf周期归属）→ 周（级联该月各周）→ 账号
-    var monthFiltered=allTraffic;
-    if(!isAll){var targetPid=monthKeyToPid(mKey);monthFiltered=monthFiltered.filter(function(r){return pidOf(r.cstart||cycleStart(r.cycle))===targetPid;});}
+    // 明细筛选：月度（日历月份）→ 周（级联该月各周）→ 账号（monthFiltered 已在函数开头定义）
     var fP=APP.state.tfPeriod;
     var recs=monthFiltered;
     if(fP&&fP!=='all'){recs=recs.filter(function(r){return r.cycle===fP;});}
@@ -896,7 +1332,8 @@
     // 图表区：趋势折线图 + 三类对比柱状图（跟随月度选择联动）
     var charts='<div class="grid g2 mb">'+renderTrafficTrendChart(monthFiltered)+renderTrafficBarChart(sc)+'</div>';
     var table='<div class="card"><div class="row mb" style="justify-content:space-between"><h3 style="margin:0">'+I.traffic+'引流明细</h3>'+
-      '<button class="btn sm" data-act="trafficAdd">'+I.plus+'录入一周</button></div>'+
+      '<div class="row" style="gap:8px"><button class="btn sm danger ghost" data-act="trafficClear">清空全部</button>'+
+      '<button class="btn sm" data-act="trafficAdd">'+I.plus+'录入一周</button></div></div>'+
       '<div class="filterbar">'+
         '<label class="fl">月度<select id="tfMonth2">'+monthOpts+'</select></label>'+
         '<label class="fl">周<select id="tfPeriod">'+pOpts2+'</select></label>'+
@@ -905,7 +1342,7 @@
       '</div>'+
       '<div style="overflow:auto"><table><thead><tr><th>周</th><th>账号</th><th>引流数</th><th>负责人</th><th>账号持有者</th><th>操作</th></tr></thead><tbody>'+
       (rows||'<tr><td colspan="6" class="empty">暂无记录</td></tr>')+'</tbody></table></div>'+
-      '<div class="small muted mt">计分规则：官方号按「加好友」1 人 = 3 分；自营号 / 兼职号按「进群」1 人 = 1 分。不统计报班转化率。</div></div>';
+      '<div class="small muted mt">统计口径：官方号按「加好友」、自营号 / 兼职号按「进群」计算引流人数。为便于横向比较，系统会按账号类型设置倍率生成「加权人数」，但页面默认以实际引流人数为主要展示指标。不统计报班转化率。</div></div>';
     return head+periodInfo+renderHeat()+charts+table;
   }
 
@@ -945,7 +1382,7 @@
       '<button class="btn sm" data-act="groupAdd">'+I.plus+'加群</button></div></div>'+
       '<div class="list">'+(sortedGs.length?sortedGs.map(function(g){
         var gn=gNum(g.name);
-        var mem=Number(g.member)||200; // 每个群默认200人
+        var mem=200; // 每个群默认200人（群上限，与 addFriend 区分）
         var af=Number(g.addFriend)||0;
         var rate=mem>0?Math.round(af/mem*100):0;
         var isEven=gn%2===0;
@@ -962,7 +1399,7 @@
   /* ---------- 课程资料 ---------- */
   function viewMaterials(){
     var all=APP.data.materials;
-    var typeOrder=['课程','汇总','真题','练习','文档'];
+    var typeOrder=['课程','真题','习题册','其他'];
     var cur=APP.state.matType||'全部';
     var ms=(cur==='全部')?all:all.filter(function(m){return m.type===cur;});
     var filter='<div class="row mb">'+['全部'].concat(typeOrder).map(function(t){
@@ -991,17 +1428,7 @@
           '<button class="btn sm danger" data-act="fileDel" data-id="'+f.id+'">'+I.trash+'</button></div></div>';
       }).join('')+'</div>'):'<div class="empty">还没有上传文件，点「上传文件」把资料存进来</div>')+'</div>'+
       '<input type="file" id="matFile" multiple style="display:none">';
-    var qa=APP.data.qa;
-    var qaHtml='<div class="card mt"><div class="row mb"><h3 style="margin:0">'+I.book+'答疑知识库</h3>'+
-      '<button class="btn sm" data-act="qaAdd">'+I.plus+'沉淀问答</button></div>'+
-      (qa.length?('<div class="list">'+qa.map(function(q){
-        return '<div class="li"><div class="body"><div class="t">Q：'+esc(q.question)+'</div>'+
-          '<div class="m">A：'+esc(q.answer)+'</div>'+
-          '<div class="muted small">重要度：'+esc(q.importance||'-')+(q.sourceGroup?' · 来源：'+esc(q.sourceGroup):'')+(q.tags?' · '+esc(q.tags):'')+'</div></div>'+
-          '<div class="acts"><button class="btn sm ghost" data-act="qaEdit" data-id="'+q.id+'">'+I.edit+'</button>'+
-          '<button class="btn sm danger" data-act="qaDel" data-id="'+q.id+'">'+I.trash+'</button></div></div>';
-      }).join('')+'</div>'):'<div class="empty">内部答疑面板的高频问题可沉淀到这里</div>')+'</div>';
-    return filter+list+filesHtml+qaHtml;
+    return filter+list+filesHtml;
   }
   function fmtSize(b){b=Number(b)||0;if(b<1024)return b+' B';if(b<1048576)return (b/1024).toFixed(1)+' KB';return (b/1048576).toFixed(2)+' MB';}
   // 读取上传文件→base64 存入 APP.data.files（带容量守卫，超出 localStorage 时提示并跳过）
@@ -1052,20 +1479,19 @@
     return list;
   }
   function accTypeOpts(sel){
-    var map=[['official','官方号 (×3)'],['self','自营号 (×1)'],['hs','高分学长学姐号 (×1)'],['pt','兼职号 (×1)']];
+    var map=[['official','官方号'],['self','自营号'],['parttime','兼职号']];
     return map.map(function(p){return '<option value="'+p[0]+'"'+(p[0]===sel?' selected':'')+'>'+p[1]+'</option>';}).join('');
   }
   function accForm(rec){
-    rec=rec||{name:'',type:'parttime',cat:'高分学长学姐号',holder:'',owner:'',persona:'',rate:1,active:true,note:''};
-    var typeSel=rec.type==='official'?'official':(rec.type==='self'?'self':(rec.cat==='兼职号'?'pt':'hs'));
+    rec=rec||{name:'',type:'parttime',cat:'兼职号',holder:'',owner:'',persona:'',rate:1,active:true,note:''};
+    var typeSel=rec.type==='official'?'official':(rec.type==='self'?'self':'parttime');
     var actSel=rec.active?'1':'0';
-    var rateSel=String(rec.rate||1);
     openModal('<h3>'+(rec.id?'编辑账号':'新增账号')+'</h3>'+
       field('账号名',inp('ac_name',rec.name))+
       field('类型',sel('ac_type',accTypeOpts(typeSel)))+
       field('持有者',inp('ac_holder',rec.holder))+
       field('负责人',inp('ac_owner',rec.owner))+
-      field('引流倍率',sel('ac_rate',opt(['1','3'],rateSel)))+
+      field('引流倍率（×）',inp('ac_rate',rec.rate||1))+
       field('状态',sel('ac_active',opt(['1','0'],actSel)))+
       field('人设 / 简介',inp('ac_persona',rec.persona))+
       field('备注',inp('ac_note',rec.note))+
@@ -1104,8 +1530,8 @@
       var dots=s.vals.map(function(v,i){return '<circle cx="'+X(i).toFixed(1)+'" cy="'+Y(v).toFixed(1)+'" r="3" fill="'+s.color+'"/>';}).join('');
       return '<path d="'+d+'" fill="none" stroke="'+s.color+'" stroke-width="2"/>'+dots;
     }).join('');
-    var xlabels=labels.map(function(l,i){return '<text x="'+X(i).toFixed(1)+'" y="'+(H-8)+'" font-size="10" fill="#97979C" text-anchor="middle">'+esc(l)+'</text>';}).join('');
-    var legend=series.map(function(s){return '<span style="display:inline-flex;align-items:center;gap:4px;margin-right:10px;font-size:11px;color:#97979C"><i style="width:10px;height:10px;border-radius:3px;background:'+s.color+';display:inline-block"></i>'+esc(s.name)+'</span>';}).join('');
+    var xlabels=labels.map(function(l,i){return '<text x="'+X(i).toFixed(1)+'" y="'+(H-8)+'" font-size="10" fill="'+CH.axis+'" text-anchor="middle">'+esc(l)+'</text>';}).join('');
+    var legend=series.map(function(s){return '<span style="display:inline-flex;align-items:center;gap:4px;margin-right:10px;font-size:11px;color:'+CH.axis+'"><i style="width:10px;height:10px;border-radius:3px;background:'+s.color+';display:inline-block"></i>'+esc(s.name)+'</span>';}).join('');
     return '<svg viewBox="0 0 '+W+' '+H+'" width="100%" style="max-height:220px">'+paths+xlabels+'</svg><div style="margin-top:4px">'+legend+'</div>';
   }
   function barChart(labels,vals,colors){
@@ -1116,8 +1542,8 @@
     var bars=labels.map(function(l,i){
       var x=pad+gap*i+(gap-bw)/2,h=H-pad-Y(vals[i]);
       return '<rect x="'+x.toFixed(1)+'" y="'+Y(vals[i]).toFixed(1)+'" width="'+bw.toFixed(1)+'" height="'+h.toFixed(1)+'" rx="4" fill="'+colors[i]+'"/>'+
-        '<text x="'+(x+bw/2).toFixed(1)+'" y="'+(Y(vals[i])-6).toFixed(1)+'" font-size="11" fill="#56565B" text-anchor="middle" font-weight="700">'+vals[i]+'</text>'+
-        '<text x="'+(x+bw/2).toFixed(1)+'" y="'+(H-8)+'" font-size="10" fill="#97979C" text-anchor="middle">'+esc(l)+'</text>';
+        '<text x="'+(x+bw/2).toFixed(1)+'" y="'+(Y(vals[i])-6).toFixed(1)+'" font-size="11" fill="'+CH.txt+'" text-anchor="middle" font-weight="700">'+vals[i]+'</text>'+
+        '<text x="'+(x+bw/2).toFixed(1)+'" y="'+(H-8)+'" font-size="10" fill="'+CH.axis+'" text-anchor="middle">'+esc(l)+'</text>';
     }).join('');
     return '<svg viewBox="0 0 '+W+' '+H+'" width="100%" style="max-height:220px">'+bars+'</svg>';
   }
@@ -1154,30 +1580,38 @@
 
   /* 引流表单（按阶段录入，不按某一天；官号填加好友，其余填进群） */
   function trafficForm(rec){
-    rec=rec||{cycle:'',accountId:'acc_off',join:'',addFriend:'',note:''};
-    // 账号下拉：仍在使用的账号排前，已停用账号置后并标注
-    var sortedAccs=APP.data.accounts.slice().sort(function(a,b){
-      if(a.active!==b.active)return a.active?-1:1;
-      return 0;
-    });
-    var accOpts=sortedAccs.map(function(a){
-      return '<option value="'+a.id+'"'+(a.id===rec.accountId?' selected':'')+'>'+esc(a.name)+'（'+typeLabel(a.type)+(a.active?'':'·已停')+'）</option>';
-    }).join('');
-    openModal('<h3>'+(rec.id?'编辑统计':'录入引流统计')+'</h3>'+
-      field('统计周期（填阶段即可，如 8.5-8.9）',inp('tr_cycle',rec.cycle))+
-      field('账号',sel('tr_acc',accOpts))+
-      '<div id="tr_offWrap">'+field('加好友人数（官号指标）',inp('tr_add',rec.addFriend))+'</div>'+
-      '<div id="tr_joinWrap">'+field('进群人数（自营/兼职指标）',inp('tr_join',rec.join))+'</div>'+
-      '<div class="muted small mb" id="tr_meta"></div>'+
-      field('备注',inp('tr_note',rec.note))+
-      '<div class="row" style="justify-content:flex-end"><button class="btn ghost" data-x>取消</button><button class="btn" data-act="trafficSave" data-id="'+(rec.id||'')+'">保存</button></div>');
-    function syncTr(){
-      var a=accById($('#tr_acc').value);var off=a&&a.type==='official';
-      $('#tr_offWrap').style.display=off?'':'none';
-      $('#tr_joinWrap').style.display=off?'none':'';
-      $('#tr_meta').textContent=a?('持有者：'+(a.holder||'-')+'　·　负责人：'+(a.owner||'-')):'';
+    rec=rec||null;
+    // 解析已有记录的起止日期（兼容旧数据 "8.5" 与完整日期）
+    var startISO='', endISO='', note='';
+    if(rec&&rec.cstart){
+      startISO=String(rec.cstart);
+      if(/^\d{1,2}\.\d{1,2}$/.test(startISO)){startISO='2026-'+pad2(+startISO.split('.')[0])+'-'+pad2(+startISO.split('.')[1]);}
+      var cyc=String(rec.cycle||'');
+      var ms=cyc.match(/(\d{1,2})\.(\d{1,2})/g);
+      if(ms&&ms[1]){endISO='2026-'+pad2(+ms[1].split('.')[0])+'-'+pad2(+ms[1].split('.')[1]);}
+      note=rec.note||'';
     }
-    $('#tr_acc').addEventListener('change',syncTr);syncTr();
+    // 账号列表：活跃排前，停用置后并标注
+    var sortedAccs=APP.data.accounts.slice().sort(function(a,b){if(a.active!==b.active)return a.active?-1:1;return 0;});
+    // 编辑时预填该账号数值
+    var prefill={};
+    if(rec){var pa=accById(rec.accountId);prefill[rec.accountId]=(pa&&pa.type==='official')?rec.addFriend:rec.join;}
+    var rows=sortedAccs.map(function(a){
+      var off=a.type==='official';
+      var val=prefill[a.id]!=null?prefill[a.id]:'';
+      return '<div class="tr-row"><span class="tr-name">'+esc(a.name)+' <i class="muted small">'+typeLabel(a.type)+(a.active?'':'·已停')+'</i></span>'+
+        '<input id="tr_num_'+a.id+'" type="number" min="0" value="'+esc(val)+'" placeholder="0">'+
+        '<span class="muted small">'+(off?'加好友':'进群')+'</span></div>';
+    }).join('');
+    openModal('<h3>'+(rec&&rec.id?'编辑统计':'录入一周引流')+'</h3>'+
+      field('起始日期','<input type="date" id="tr_start" value="'+esc(startISO)+'">')+
+      field('结束日期','<input type="date" id="tr_end" value="'+esc(endISO)+'">')+
+      '<div class="muted small mb" id="tr_cyclePrev"></div>'+
+      field('各账号引流数（填数字即可，留空不录）','<div class="tr-grid">'+rows+'</div>')+
+      field('备注',inp('tr_note',note))+
+      '<div class="row" style="justify-content:flex-end"><button class="btn ghost" data-x>取消</button><button class="btn" data-act="trafficSave" data-id="'+(rec&&rec.id||'')+'">保存</button></div>');
+    function syncPrev(){var s=$('#tr_start').value,e=$('#tr_end').value,t='';if(s){var md=formatMD(s);var md2=(e&&e!==s)?formatMD(e):'';t='周期标签：'+md+(md2?(' - '+md2):'');}$('#tr_cyclePrev').textContent=t;}
+    $('#tr_start').addEventListener('change',syncPrev);$('#tr_end').addEventListener('change',syncPrev);syncPrev();
   }
   function periodForm(){
     var pid=(APP.state.tfMonth!=='all')?monthKeyToPid(APP.state.tfMonth):APP.data.meta.currentPeriod;
@@ -1204,7 +1638,7 @@
   /* 资料表单 */
   function matForm(rec){
     rec=rec||{};
-    var types=opt(['课程','汇总','真题','练习','文档'],rec.type);
+    var types=opt(['课程','真题','习题册','其他'],rec.type);
     var aud=opt(['26','27','28','通用'],rec.audience);
     var st=opt(['已放','待放'],rec.status);
     var obt=opt(['进群','加微'],rec.obtain);
@@ -1245,19 +1679,37 @@
       '<div class="row" style="justify-content:flex-end"><button class="btn ghost" data-x>取消</button><button class="btn" data-act="draftSave" data-id="'+(rec.id||'')+'">保存</button></div>');
   }
   function pubForm(rec){
-    rec=rec||{title:'',date:today(),account:APP.data.accounts[0].id,link:''};
+    rec=rec||{title:'',date:today(),account:APP.data.accounts[0].id,link:'',view:0,like:0,fav:0,comment:0,statTime:today()};
+    var urls=extractUrls(rec.link), first=urls[0];
     openModal('<h3>'+(rec.id?'编辑发布':'记录发布')+'</h3>'+
       field('标题',inp('pb_title',rec.title))+
       field('日期',inp('pb_date',rec.date))+
       field('发布账号',sel('pb_acc',accOptions(rec.account)))+
-      field('笔记链接',inp('pb_link',rec.link))+
+      field('笔记分享文案','<textarea id="pb_link">'+esc(rec.link)+'</textarea>')+
+      '<div id="pb_linkPreview" class="muted small mb">已识别链接：'+(first?'<a href="'+esc(first)+'" target="_blank">'+esc(first)+'</a>':'无')+'</div>'+
+      '<div class="grid2">'+
+        field('浏览量',inp('pb_view',rec.view))+
+        field('点赞量',inp('pb_like',rec.like))+
+        field('收藏量',inp('pb_fav',rec.fav))+
+        field('评论量',inp('pb_comment',rec.comment))+
+      '</div>'+
+      '<div id="pb_ptHint" class="muted small mb" style="display:none">⚠ 该账号为兼职号，浏览量不计入汇总统计</div>'+
+      field('数据统计时间',inp('pb_statTime',rec.statTime))+
       '<div class="row" style="justify-content:flex-end"><button class="btn ghost" data-x>取消</button><button class="btn" data-act="pubSave" data-id="'+(rec.id||'')+'">保存</button></div>');
+    var updatePreview=function(){
+      var u=extractUrls($('#pb_link').value), f=u[0];
+      $('#pb_linkPreview').innerHTML='已识别链接：'+(f?'<a href="'+esc(f)+'" target="_blank">'+esc(f)+'</a>':'无');
+    };
+    $('#pb_link').addEventListener('input',updatePreview);
+    var syncPt=function(){var aa=accById($('#pb_acc').value);var h=document.getElementById('pb_ptHint');if(h)h.style.display=(aa&&aa.type==='parttime')?'block':'none';};
+    $('#pb_acc').addEventListener('change',syncPt);syncPt();
   }
 
   /* ---------- 事件绑定 ---------- */
   function bindView(){
-    document.getElementById('view').addEventListener('click',onViewClick);
-    document.getElementById('mask').addEventListener('click',onViewClick);
+    var pr=document.getElementById('pubRange'),ps=document.getElementById('pubSort');
+    if(pr)pr.addEventListener('change',function(){APP.state.pubRange=this.value;var v=document.getElementById('view');v.innerHTML=viewContent();bindView();});
+    if(ps)ps.addEventListener('change',function(){APP.state.pubSort=this.value;var v=document.getElementById('view');v.innerHTML=viewContent();bindView();});
   }
   function onViewClick(e){
     var el=e.target.closest('[data-act],[data-nav],[data-sub],[data-go],[data-stage],[data-audience],[data-heat],[data-mfilter],[data-accfilter],[data-x]');
@@ -1279,6 +1731,7 @@
   function handleAct(act,id,el){
     switch(act){
       case 'topicAdd':topicForm();break;
+      case 'topicAutoNow':{var r=topicAutoRelease(true);toast(r.added>0?('已补充 '+r.added+' 条选题'):(r.done?'选题池已用完':'暂未到更新时间'));var vx=$('#view');if(vx){vx.innerHTML=viewContent();bindView();}break;}
       case 'topicEdit':topicForm(find(APP.data.topics,id));break;
       case 'topicDel':if(confirm('确认删除该选题？')){APP.data.topics=APP.data.topics.filter(function(x){return x.id!==id;});save();render();toast('已删除');}break;
       case 'topicStatus':{var t=find(APP.data.topics,id);var order=['idea','writing','review','published'];var i=order.indexOf(t.status);var nx=order[(i+1)%4];t.status=nx;save();render();toast('状态→'+statusText(nx));}break;
@@ -1298,22 +1751,68 @@
         if(!id)APP.data.drafts.unshift(d);save();closeModal();render();toast('已保存');break;}
       case 'pubAdd':pubForm();break;
       case 'pubEdit':pubForm(find(APP.data.publishes,id));break;
-      case 'pubDel':if(confirm('确认删除？')){APP.data.publishes=APP.data.publishes.filter(function(x){return x.id!==id;});save();render();toast('已删除');}break;
+      case 'pubDel':if(confirm('确认删除？')){APP.data.publishes=APP.data.publishes.filter(function(x){return x.id!==id;});APP.data.reviews=APP.data.reviews.filter(function(x){return !(x.publishId===id && x.source==='auto');});save();render();toast('已删除');}break;
+      case 'copyLink':copyText(el.getAttribute('data-text'));break;
+      case 'pubHotToggle':APP.state.pubHot=!APP.state.pubHot;var vh=$('#view');if(vh){vh.innerHTML=viewContent();bindView();}break;
+      case 'pubHighViewToggle':APP.state.pubHighView=!APP.state.pubHighView;var vh2=$('#view');if(vh2){vh2.innerHTML=viewContent();bindView();}break;
+      case 'pubExport':{
+        var rows=pubList();
+        var header=['发布日期','账号','标题','浏览量','点赞量','收藏量','评论量','类型标注'];
+        var lines=[header.map(csvCell).join(',')];
+        rows.forEach(function(p){
+          var st=pubStats(p);
+          var type=(isHotPost(p)&&!isHighViewPost(p))?'爆款':(isHighViewPost(p)?'高浏览':'普通');
+          var viewVal=st.isPT?'':st.view;
+          lines.push([p.date||'',accName(p.account)||'',p.title||'',viewVal,st.like,st.fav,st.comment,type].map(csvCell).join(','));
+        });
+        var namePart=(APP.state.pubHot?'_爆款':(APP.state.pubHighView?'_高浏览':(APP.state.pubRange!=='all'?('_'+APP.state.pubRange.replace('-','年')+'月'):'')));
+        var blob=new Blob(['﻿'+lines.join('\r\n')],{type:'text/csv;charset=utf-8;'});
+        var a=document.createElement('a');a.href=URL.createObjectURL(blob);a.download='发布数据导出'+namePart+'.csv';document.body.appendChild(a);a.click();URL.revokeObjectURL(a.href);document.body.removeChild(a);
+        toast('已导出 '+rows.length+' 条');break;}
       case 'pubSave':{
         var p=id?find(APP.data.publishes,id):{id:uid()};
         p.title=$('#pb_title').value;p.date=$('#pb_date').value;p.account=$('#pb_acc').value;p.link=$('#pb_link').value;
-        if(!id)APP.data.publishes.unshift(p);save();closeModal();render();toast('已保存');break;}
+        p.view=parseCount($('#pb_view').value);p.like=parseCount($('#pb_like').value);p.fav=parseCount($('#pb_fav').value);p.comment=parseCount($('#pb_comment').value);p.statTime=$('#pb_statTime').value;
+        if(!id)APP.data.publishes.unshift(p);
+        syncReviewFromPublish(p);
+        save();closeModal();render();toast('已保存');break;}
+      case 'revAdd':revForm();break;
+      case 'revEdit':revForm(find(APP.data.reviews,id));break;
+      case 'revDel':if(confirm('确认删除该复盘？')){APP.data.reviews=APP.data.reviews.filter(function(x){return x.id!==id;});save();render();toast('已删除');}break;
+      case 'revSave':{
+        var r=id?find(APP.data.reviews,id):{id:uid(),publishId:''};
+        r.title=$('#rv_title').value;r.date=$('#rv_date').value;
+        r.expose=parseCount($('#rv_expose').value);r.interact=parseCount($('#rv_interact').value);r.join=parseCount($('#rv_join').value);r.note=$('#rv_note').value;
+        if(!id)APP.data.reviews.unshift(r);save();closeModal();render();toast('已保存');break;}
       case 'trafficAdd':trafficForm();break;
       case 'trafficEdit':trafficForm(find(APP.data.traffic,id));break;
       case 'trafficDel':if(confirm('确认删除该条统计？')){APP.data.traffic=APP.data.traffic.filter(function(x){return x.id!==id;});save();render();toast('已删除');}break;
+      case 'trafficClear':if(confirm('确认清空全部引流数据？此操作不可撤销')){APP.data.traffic=[];save();render();toast('已清空引流数据');}break;
       case 'trafficSave':{
-        var r=id?find(APP.data.traffic,id):{id:uid()};
-        r.cycle=$('#tr_cycle').value;r.cstart=cycleStart(r.cycle);r.accountId=$('#tr_acc').value;
-        var _a=accById(r.accountId);var _off=_a&&_a.type==='official';
-        if(_off){r.addFriend=Number($('#tr_add').value)||0;r.join=0;}
-        else {r.join=Number($('#tr_join').value)||0;r.addFriend=0;}
-        r.note=$('#tr_note').value;
-        if(!id)APP.data.traffic.unshift(r);save();closeModal();render();toast('已保存');break;}
+        var startISO=$('#tr_start').value, endISO=$('#tr_end').value||$('#tr_start').value;
+        if(!startISO){toast('请选择起始日期');break;}
+        var cycle=formatMD(startISO)+(endISO&&endISO!==startISO?(' - '+formatMD(endISO)):'');
+        var cstart=startISO, pid=pidOf(cstart), note=$('#tr_note').value;
+        // 编辑单条：直接更新该账号记录
+        if(id){
+          var r=find(APP.data.traffic,id);
+          if(r){var ra=accById(r.accountId),off=ra&&ra.type==='official';var v=Number($('#tr_num_'+r.accountId).value)||0;
+            if(off){r.addFriend=v;r.join=0;}else{r.join=v;r.addFriend=0;}
+            r.cycle=cycle;r.cstart=cstart;r.periodId=pid;r.note=note;}
+          save();closeModal();render();toast('已保存');break;
+        }
+        // 新增：按账号批量写入，仅处理填了数字的账号（同账号同周期自动更新，不重复）
+        var n=0;
+        APP.data.accounts.forEach(function(a){
+          var el=$('#tr_num_'+a.id);if(!el)return;var v=Number(el.value)||0;if(v<=0)return;
+          var off=a.type==='official';
+          var ex=APP.data.traffic.filter(function(r){return r.accountId===a.id&&r.cycle===cycle;})[0];
+          if(ex){if(off){ex.addFriend=v;ex.join=0;}else{ex.join=v;ex.addFriend=0;}ex.cstart=cstart;ex.periodId=pid;ex.note=note;}
+          else APP.data.traffic.unshift({id:uid(),periodId:pid,cycle:cycle,cstart:cstart,accountId:a.id,join:off?0:v,addFriend:off?v:0,note:note});
+          n++;
+        });
+        if(!n){toast('请至少填写一个账号数字');break;}
+        save();closeModal();render();toast('已保存 '+n+' 条');break;}
       case 'periodEdit':periodForm();break;
       case 'periodSave':{var p=APP.data.periods.filter(function(x){return x.id===id;})[0];
         if(p){p.start=$('#pe_start').value;p.end=$('#pe_end').value;save();closeModal();render();toast('月度边界已更新');}break;}
@@ -1335,7 +1834,7 @@
         if(tv==='official'){a.type='official';a.cat='官方号';}
         else if(tv==='self'){a.type='self';a.cat='自营号';}
         else if(tv==='pt'){a.type='parttime';a.cat='兼职号';}
-        else {a.type='parttime';a.cat='高分学长学姐号';}
+        else {a.type='parttime';a.cat='兼职号';}
         a.holder=$('#ac_holder').value;a.owner=$('#ac_owner').value;
         a.rate=Number($('#ac_rate').value)||1;a.active=$('#ac_active').value==='1';
         a.persona=$('#ac_persona').value;a.note=$('#ac_note').value;
@@ -1375,16 +1874,23 @@
       APP.data=seed();save();render();toast('已恢复示例数据');
     }
   }
-
   /* ---------- 初始化 ---------- */
   function init(){
     APP.data=load();
+    // 品牌副标题：guest 模式去掉"小艺"，自己链接保持不变
+    var bs=document.getElementById('brandSub');
+    if(bs)bs.textContent='线上运营管理';
+    // 选题库每周自动补充（打开即检查：距上次≥7天则从储备池放出3条）；主链接与 guest 链接一致
+    try{var _rel=topicAutoRelease(false);if(_rel.added>0&&$('#toast'))toast('本周已自动补充 '+_rel.added+' 条选题');}catch(e){}
+
     // 绑定导航
     $('#menu').addEventListener('click',function(e){var n=e.target.closest('[data-nav]');if(n)navigate(n.getAttribute('data-nav'));});
     $('#bottombar').addEventListener('click',function(e){var n=e.target.closest('[data-nav]');if(n)navigate(n.getAttribute('data-nav'));});
     $('#ham').addEventListener('click',function(){$('#nav').classList.add('show');$('#scrim').classList.add('show');});
     $('#scrim').addEventListener('click',closeNav);
     $('#mask').addEventListener('click',function(e){if(e.target.id==='mask')closeModal();});
+    document.getElementById('view').addEventListener('click',onViewClick);
+    document.getElementById('mask').addEventListener('click',onViewClick);
     // 导入 + 月度/周/账号筛选 + 资料文件上传
     document.addEventListener('change',function(e){
       var t=e.target;if(!t)return;
