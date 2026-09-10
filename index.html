@@ -97,7 +97,8 @@
   .tr-row{display:flex;align-items:center;gap:10px;padding:6px 2px;border-bottom:1px dashed var(--line)}
   .tr-row:last-child{border-bottom:none}
   .tr-row .tr-name{flex:1;font-size:13px}
-  .tr-row input[type=number]{width:120px;text-align:right}
+  .tr-row .tr-metric{flex:0 0 44px;text-align:left}
+  .tr-row input[type=number]{flex:0 0 120px;width:120px;text-align:right}
   .stat.self{border-left:4px solid var(--self)} .stat.self .v{color:var(--self)}
   .stat.parttime{border-left:4px solid var(--parttime)} .stat.parttime .v{color:var(--parttime)}
   .stat.total{border-left:4px solid var(--brand)} .stat.total .v{color:var(--brand-d)}
@@ -1594,7 +1595,7 @@
       var val=prefill[a.id]!=null?prefill[a.id]:'';
       return '<div class="tr-row"><span class="tr-name">'+esc(a.name)+' <i class="muted small">'+typeLabel(a.type)+(a.active?'':'·已停')+'</i></span>'+
         '<input id="tr_num_'+a.id+'" type="number" min="0" value="'+esc(val)+'" placeholder="0">'+
-        '<span class="muted small">'+(off?'加好友':'进群')+'</span></div>';
+        '<span class="muted small tr-metric">'+(off?'加好友':'进群')+'</span></div>';
     }).join('');
     openModal('<h3>'+(rec&&rec.id?'编辑统计':'录入一周引流')+'</h3>'+
       field('起始日期','<input type="date" id="tr_start" value="'+esc(startISO)+'">')+
