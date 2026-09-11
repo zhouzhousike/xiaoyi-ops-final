@@ -889,7 +889,7 @@
     {key:'accounts',label:'账号管理',icon:I.acc},
     {key:'backup',label:'数据备份',icon:I.backup}
   ];
-  APP.state={view:'dashboard',sub:'topics',topicAudience:'全部',topicStage:'全部',heatRange:'week',trafficTab:'table',matType:'全部',tfPeriod:'',tfMonth:'all',tfAcc:'all',privYear:'all',privConsult:'all',accTypeFilter:'all',pubRange:'all',pubSort:'date_desc',pubHot:false,pubHighView:false};
+  APP.state={view:'dashboard',sub:'topics',topicAudience:'全部',topicStage:'全部',heatRange:'week',trafficTab:'table',matType:'全部',tfPeriod:'',tfMonth:'all',tfAcc:'all',privYear:'all',privConsult:'all',accTypeFilter:'all',pubRange:'all',pubAcc:'all',pubSort:'date_desc',pubHot:false,pubHighView:false};
 
   function renderNav(){
     var m=$('#menu'); m.innerHTML=NAV.map(function(n){
@@ -1137,6 +1137,7 @@
     var all=APP.data.publishes.slice();
     all=all.filter(function(p){
       if(APP.state.pubRange!=='all'&&ymOf(p.date)!==APP.state.pubRange)return false;
+      if(APP.state.pubAcc!=='all'&&p.account!==APP.state.pubAcc)return false;
       if(APP.state.pubHot&&!(isHotPost(p)&&!isHighViewPost(p)))return false;
       if(APP.state.pubHighView&&!isHighViewPost(p))return false;
       return true;
@@ -1164,10 +1165,12 @@
     all.forEach(function(p){var st=pubStats(p);if(!st.isPT)sum.view+=st.view;sum.like+=st.like;sum.fav+=st.fav;sum.comment+=st.comment;if(isHotPost(p)&&!isHighViewPost(p))sum.hot++;if(isHighViewPost(p))sum.highview++;});
     if(!APP.data.publishes.length)return '<div class="row mb"><button class="btn" data-act="pubAdd">'+I.plus+'记录发布</button></div><div class="empty">还没有发布记录</div>';
     var monthOpts='<option value="all">全部时间</option>'+monthList.map(function(m){return '<option value="'+m+'"'+(APP.state.pubRange===m?' selected':'')+'>'+m.replace('-','年')+'月</option>';}).join('');
+    var accOpts='<option value="all">全部账号</option>'+APP.data.accounts.map(function(a){return '<option value="'+a.id+'"'+(APP.state.pubAcc===a.id?' selected':'')+'>'+esc(a.name)+'</option>';}).join('');
     var rangeLabel=APP.state.pubRange==='all'?'全部':(APP.state.pubRange.replace('-','年')+'月');
     return '<div class="row mb" style="gap:10px;flex-wrap:wrap;align-items:center">'+
       '<button class="btn" data-act="pubAdd">'+I.plus+'记录发布</button>'+
       '<select id="pubRange" class="mini">'+monthOpts+'</select>'+
+      '<select id="pubAcc" class="mini">'+accOpts+'</select>'+
       '<select id="pubSort" class="mini">'+optPairs([['date_desc','发布时间（新→旧）'],['like_desc','点赞高→低'],['fav_desc','收藏高→低'],['view_desc','浏览高→低']],APP.state.pubSort)+'</select>'+
       '<button class="btn ghost'+(APP.state.pubHot?' active':'')+'" data-act="pubHotToggle">🔥 只看爆款</button>'+
       '<button class="btn ghost'+(APP.state.pubHighView?' active':'')+'" data-act="pubHighViewToggle">📈 只看高浏览</button>'+
@@ -1668,7 +1671,7 @@
   function field(label,input){return '<div class="field"><label>'+label+'</label>'+input+'</div>';}
   function opt(list,sel){return list.map(function(o){return '<option'+(o===sel?' selected':'')+'>'+esc(o)+'</option>';}).join('');}
 
-  function accOptions(sel){return APP.data.accounts.map(function(a){return '<option value="'+a.id+'"'+(a.id===sel?' selected':'')+'>'+esc(a.name)+'（'+typeLabel(a.type)+(a.type==='official'?' ×3':' ×1')+'）</option>';}).join('');}
+  function accOptions(sel,simple){return APP.data.accounts.map(function(a){var label=simple?esc(a.name):(esc(a.name)+'（'+typeLabel(a.type)+(a.type==='official'?' ×3':' ×1')+'）');return '<option value="'+a.id+'"'+(a.id===sel?' selected':'')+'>'+label+'</option>';}).join('');}
 
   /* 选题表单 */
   function topicForm(rec){
@@ -1800,7 +1803,7 @@
     openModal('<h3>'+(rec.id?'编辑发布':'记录发布')+'</h3>'+
       field('标题',inp('pb_title',rec.title))+
       field('日期',inp('pb_date',rec.date))+
-      field('发布账号',sel('pb_acc',accOptions(rec.account)))+
+      field('发布账号',sel('pb_acc',accOptions(rec.account,true)))+
       field('笔记分享文案','<textarea id="pb_link">'+esc(rec.link)+'</textarea>')+
       '<div id="pb_linkPreview" class="muted small mb">已识别链接：'+(first?'<a href="'+esc(first)+'" target="_blank">'+esc(first)+'</a>':'无')+'</div>'+
       '<div class="grid2">'+
@@ -1823,8 +1826,9 @@
 
   /* ---------- 事件绑定 ---------- */
   function bindView(){
-    var pr=document.getElementById('pubRange'),ps=document.getElementById('pubSort');
+    var pr=document.getElementById('pubRange'),ps=document.getElementById('pubSort'),pa=document.getElementById('pubAcc');
     if(pr)pr.addEventListener('change',function(){APP.state.pubRange=this.value;var v=document.getElementById('view');v.innerHTML=viewContent();bindView();});
+    if(pa)pa.addEventListener('change',function(){APP.state.pubAcc=this.value;var v=document.getElementById('view');v.innerHTML=viewContent();bindView();});
     if(ps)ps.addEventListener('change',function(){APP.state.pubSort=this.value;var v=document.getElementById('view');v.innerHTML=viewContent();bindView();});
   }
   function onViewClick(e){
@@ -1881,7 +1885,11 @@
           var viewVal=st.isPT?'':st.view;
           lines.push([p.date||'',accName(p.account)||'',p.title||'',viewVal,st.like,st.fav,st.comment,type].map(csvCell).join(','));
         });
-        var namePart=(APP.state.pubHot?'_爆款':(APP.state.pubHighView?'_高浏览':(APP.state.pubRange!=='all'?('_'+APP.state.pubRange.replace('-','年')+'月'):'')));
+        var namePart='';
+        if(APP.state.pubHot)namePart+='_爆款';
+        else if(APP.state.pubHighView)namePart+='_高浏览';
+        if(APP.state.pubRange!=='all')namePart+='_'+APP.state.pubRange.replace('-','年')+'月';
+        if(APP.state.pubAcc!=='all'){var aa=accById(APP.state.pubAcc);namePart+='_'+esc(aa?aa.name:APP.state.pubAcc);}
         var blob=new Blob(['﻿'+lines.join('\r\n')],{type:'text/csv;charset=utf-8;'});
         var a=document.createElement('a');a.href=URL.createObjectURL(blob);a.download='发布数据导出'+namePart+'.csv';document.body.appendChild(a);a.click();URL.revokeObjectURL(a.href);document.body.removeChild(a);
         toast('已导出 '+rows.length+' 条');break;}
